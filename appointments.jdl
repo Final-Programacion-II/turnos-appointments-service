@@ -1,0 +1,20 @@
+application {
+  config {
+    baseName appointments
+    packageName ar.edu.um.turnos.appointments
+    applicationType monolith
+    authenticationType jwt
+    buildTool maven
+    databaseType sql
+    prodDatabaseType postgresql
+    devDatabaseType postgresql
+    cacheProvider no
+    enableHibernateCache false
+    skipClient true
+    clientFramework no
+    serviceDiscoveryType no
+    enableTranslation false
+    nativeLanguage es
+    serverPort 8082
+  }
+}
