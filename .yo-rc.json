@@ -1,0 +1,24 @@
+{
+  "generator-jhipster": {
+    "applicationType": "monolith",
+    "authenticationType": "jwt",
+    "baseName": "appointments",
+    "buildTool": "maven",
+    "cacheProvider": "no",
+    "clientFramework": "no",
+    "creationTimestamp": 1701751202602,
+    "databaseType": "sql",
+    "devDatabaseType": "postgresql",
+    "enableHibernateCache": false,
+    "enableTranslation": false,
+    "entities": [],
+    "jhipsterVersion": "9.2.0",
+    "jwtSecretKey": "MmI1OTdjYjY4ZWE3NmIwODM5MDRlNzdkMTViY2YwZTYyNGMyZmE5NjU3ZWVmZDYwZGY5YTA1NDU1N2VkOTFjMzhlOTdkNWIxMDI5MDg5YjFiMjcyNzc4OTRmN2FhMjk3N2YwNjM3OTg1OWEzZTg0ZWRmNDYwYjQxMjJhNmE4MmM=",
+    "nativeLanguage": "es",
+    "packageName": "ar.edu.um.turnos.appointments",
+    "prodDatabaseType": "postgresql",
+    "serverPort": "8082",
+    "serviceDiscoveryType": "no",
+    "skipClient": true
+  }
+}
