@@ -2,6 +2,7 @@ package ar.edu.um.turnos.appointments;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.belongToAnyOf;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeTests;
@@ -31,6 +32,9 @@ class TechnicalStructureTest {
         .whereLayer("Domain").mayOnlyBeAccessedByLayers("Persistence", "Service", "Security", "Web", "Config")
 
         .ignoreDependency(belongToAnyOf(AppointmentsApp.class), alwaysTrue())
+        // Las reservas son hexagonales y tienen sus propias reglas (ReservationArchitectureTest).
+        .ignoreDependency(resideInAPackage("..reservation.."), alwaysTrue())
+        .ignoreDependency(alwaysTrue(), resideInAPackage("..reservation.."))
         .ignoreDependency(alwaysTrue(), belongToAnyOf(
             ar.edu.um.turnos.appointments.config.Constants.class,
             ar.edu.um.turnos.appointments.config.ApplicationProperties.class
