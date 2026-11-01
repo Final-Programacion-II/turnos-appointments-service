@@ -207,132 +207,63 @@ class AccountResourceIT {
         return invalidUser;
     }
 
+    // Los usuarios quedan activos al registrarse, así que un login o un email repetido se rechaza
+    // enseguida (en JHipster, un usuario sin activar se podía pisar con un registro nuevo).
     @Test
     @Transactional
     void testRegisterDuplicateLogin() throws Exception {
-        // First registration
-        ManagedUserVM firstUser = new ManagedUserVM();
-        firstUser.setLogin("alice");
-        firstUser.setPassword("password");
-        firstUser.setFirstName("Alice");
-        firstUser.setLastName("Something");
-        firstUser.setEmail("alice@example.com");
-        firstUser.setImageUrl("http://placehold.it/50x50");
-        firstUser.setLangKey(Constants.DEFAULT_LANGUAGE);
-        firstUser.setAuthorities(Set.of(AuthoritiesConstants.USER));
+        ManagedUserVM firstUser = usuario("alice", "alice@example.com");
+        ManagedUserVM secondUser = usuario("alice", "alice2@example.com");
 
-        // Duplicate login, different email
-        ManagedUserVM secondUser = new ManagedUserVM();
-        secondUser.setLogin(firstUser.getLogin());
-        secondUser.setPassword(firstUser.getPassword());
-        secondUser.setFirstName(firstUser.getFirstName());
-        secondUser.setLastName(firstUser.getLastName());
-        secondUser.setEmail("alice2@example.com");
-        secondUser.setImageUrl(firstUser.getImageUrl());
-        secondUser.setLangKey(firstUser.getLangKey());
-        secondUser.setCreatedBy(firstUser.getCreatedBy());
-        secondUser.setCreatedDate(firstUser.getCreatedDate());
-        secondUser.setLastModifiedBy(firstUser.getLastModifiedBy());
-        secondUser.setLastModifiedDate(firstUser.getLastModifiedDate());
-        secondUser.setAuthorities(new HashSet<>(firstUser.getAuthorities()));
-
-        // First user
         restAccountMockMvc
             .perform(post("/api/register").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(firstUser)))
             .andExpect(status().isCreated());
 
-        // Second (non activated) user
         restAccountMockMvc
             .perform(post("/api/register").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(secondUser)))
-            .andExpect(status().isCreated());
+            .andExpect(status().isBadRequest());
 
-        Optional<User> testUser = userRepository.findOneByEmailIgnoreCase("alice2@example.com");
-        assertThat(testUser).isPresent();
-        testUser.orElseThrow().setActivated(true);
-        userRepository.save(testUser.orElseThrow());
-
-        // Second (already activated) user
-        restAccountMockMvc
-            .perform(post("/api/register").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(secondUser)))
-            .andExpect(status().is4xxClientError());
-
+        assertThat(userRepository.findOneByEmailIgnoreCase("alice2@example.com")).isEmpty();
         userService.deleteUser("alice");
     }
 
     @Test
     @Transactional
     void testRegisterDuplicateEmail() throws Exception {
-        // First user
-        ManagedUserVM firstUser = new ManagedUserVM();
-        firstUser.setLogin("test-register-duplicate-email");
-        firstUser.setPassword("password");
-        firstUser.setFirstName("Alice");
-        firstUser.setLastName("Test");
-        firstUser.setEmail("test-register-duplicate-email@example.com");
-        firstUser.setImageUrl("http://placehold.it/50x50");
-        firstUser.setLangKey(Constants.DEFAULT_LANGUAGE);
-        firstUser.setAuthorities(Set.of(AuthoritiesConstants.USER));
+        ManagedUserVM firstUser = usuario("test-register-duplicate-email", "test-register-duplicate-email@example.com");
+        ManagedUserVM secondUser = usuario("test-register-duplicate-email-2", "test-register-duplicate-email@example.com");
+        ManagedUserVM upperCaseEmail = usuario("test-register-duplicate-email-3", "TEST-register-duplicate-email@example.com");
 
-        // Register first user
         restAccountMockMvc
             .perform(post("/api/register").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(firstUser)))
             .andExpect(status().isCreated());
 
-        Optional<User> testUser1 = userRepository.findOneByLogin("test-register-duplicate-email");
-        assertThat(testUser1).isPresent();
-
-        // Duplicate email, different login
-        ManagedUserVM secondUser = new ManagedUserVM();
-        secondUser.setLogin("test-register-duplicate-email-2");
-        secondUser.setPassword(firstUser.getPassword());
-        secondUser.setFirstName(firstUser.getFirstName());
-        secondUser.setLastName(firstUser.getLastName());
-        secondUser.setEmail(firstUser.getEmail());
-        secondUser.setImageUrl(firstUser.getImageUrl());
-        secondUser.setLangKey(firstUser.getLangKey());
-        secondUser.setAuthorities(new HashSet<>(firstUser.getAuthorities()));
-
-        // Register second (non activated) user
         restAccountMockMvc
             .perform(post("/api/register").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(secondUser)))
-            .andExpect(status().isCreated());
+            .andExpect(status().isBadRequest());
 
-        Optional<User> testUser2 = userRepository.findOneByLogin("test-register-duplicate-email");
-        assertThat(testUser2).isEmpty();
-
-        Optional<User> testUser3 = userRepository.findOneByLogin("test-register-duplicate-email-2");
-        assertThat(testUser3).isPresent();
-
-        // Duplicate email - with uppercase email address
-        ManagedUserVM userWithUpperCaseEmail = new ManagedUserVM();
-        userWithUpperCaseEmail.setId(firstUser.getId());
-        userWithUpperCaseEmail.setLogin("test-register-duplicate-email-3");
-        userWithUpperCaseEmail.setPassword(firstUser.getPassword());
-        userWithUpperCaseEmail.setFirstName(firstUser.getFirstName());
-        userWithUpperCaseEmail.setLastName(firstUser.getLastName());
-        userWithUpperCaseEmail.setEmail("TEST-register-duplicate-email@example.com");
-        userWithUpperCaseEmail.setImageUrl(firstUser.getImageUrl());
-        userWithUpperCaseEmail.setLangKey(firstUser.getLangKey());
-        userWithUpperCaseEmail.setAuthorities(new HashSet<>(firstUser.getAuthorities()));
-
-        // Register third (not activated) user
+        // El email se compara sin distinguir mayúsculas
         restAccountMockMvc
-            .perform(post("/api/register").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(userWithUpperCaseEmail)))
-            .andExpect(status().isCreated());
+            .perform(post("/api/register").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(upperCaseEmail)))
+            .andExpect(status().isBadRequest());
 
-        Optional<User> testUser4 = userRepository.findOneByLogin("test-register-duplicate-email-3");
-        assertThat(testUser4).isPresent();
-        assertThat(testUser4.orElseThrow().getEmail()).isEqualTo("test-register-duplicate-email@example.com");
+        assertThat(userRepository.findOneByLogin("test-register-duplicate-email")).isPresent();
+        assertThat(userRepository.findOneByLogin("test-register-duplicate-email-2")).isEmpty();
+        assertThat(userRepository.findOneByLogin("test-register-duplicate-email-3")).isEmpty();
+        userService.deleteUser("test-register-duplicate-email");
+    }
 
-        testUser4.orElseThrow().setActivated(true);
-        userService.updateUser(new AdminUserDTO(testUser4.orElseThrow()));
-
-        // Register 4th (already activated) user
-        restAccountMockMvc
-            .perform(post("/api/register").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(secondUser)))
-            .andExpect(status().is4xxClientError());
-
-        userService.deleteUser("test-register-duplicate-email-3");
+    private ManagedUserVM usuario(String login, String email) {
+        ManagedUserVM user = new ManagedUserVM();
+        user.setLogin(login);
+        user.setPassword("password");
+        user.setFirstName("Alice");
+        user.setLastName("Test");
+        user.setEmail(email);
+        user.setImageUrl("http://placehold.it/50x50");
+        user.setLangKey(Constants.DEFAULT_LANGUAGE);
+        user.setAuthorities(Set.of(AuthoritiesConstants.USER));
+        return user;
     }
 
     @Test

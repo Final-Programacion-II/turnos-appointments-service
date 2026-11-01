@@ -60,9 +60,16 @@
         <spotless-maven-plugin.version>3.8.0</spotless-maven-plugin.version>
         <spring.profiles.active>dev</spring.profiles.active>
         <springdoc-openapi-starter-webmvc-api.version>3.0.3</springdoc-openapi-starter-webmvc-api.version>
+        <bouncycastle.version>1.86</bouncycastle.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <!-- Argon2PasswordEncoder de Spring Security usa la implementación de Bouncy Castle -->
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>${bouncycastle.version}</version>
+        </dependency>
         <dependency>
             <groupId>tech.jhipster</groupId>
             <artifactId>jhipster-framework</artifactId>
@@ -697,6 +704,16 @@
                             <goals>
                                 <goal>prepare-agent</goal>
                             </goals>
+                            <configuration>
+                                <!--
+                                    Solo se instrumenta el código del proyecto. Sin esto, JaCoCo también instrumenta
+                                    las librerías, y Argon2 (Bouncy Castle) se vuelve tan lento que los tests de login
+                                    superan el timeout. El reporte de cobertura solo muestra el código del proyecto.
+                                -->
+                                <includes>
+                                    <include>ar.edu.um.turnos.*</include>
+                                </includes>
+                            </configuration>
                         </execution>
                         <execution>
                             <!-- Ensures that the code coverage report for unit tests is created after unit tests have been run -->
@@ -711,6 +728,12 @@
                             <goals>
                                 <goal>prepare-agent-integration</goal>
                             </goals>
+                            <configuration>
+                                <!-- Igual que en pre-unit-tests: solo el código del proyecto -->
+                                <includes>
+                                    <include>ar.edu.um.turnos.*</include>
+                                </includes>
+                            </configuration>
                         </execution>
                         <execution>
                             <!-- Ensures that the code coverage report for integration tests is created after integration tests have been run -->

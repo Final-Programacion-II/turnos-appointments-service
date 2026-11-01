@@ -104,10 +104,9 @@ public class UserService {
         }
         newUser.setImageUrl(userDTO.getImageUrl());
         newUser.setLangKey(userDTO.getLangKey());
-        // new user is not active
-        newUser.setActivated(false);
-        // new user gets registration key
-        newUser.setActivationKey(RandomUtil.generateActivationKey());
+        // Queda activo al registrarse: no hay servidor de correo para mandar el mail de activación.
+        // El cliente no puede elegirlo: el backend lo fija siempre acá.
+        newUser.setActivated(true);
         Set<Authority> authorities = new HashSet<>();
         authorityRepository.findById(AuthoritiesConstants.USER).ifPresent(authorities::add);
         newUser.setAuthorities(authorities);

@@ -40,8 +40,9 @@ public class User extends AbstractAuditingEntity<Long> implements Serializable {
 
     @JsonIgnore
     @NotNull
-    @Size(min = 60, max = 60)
-    @Column(name = "password_hash", length = 60, nullable = false)
+    // 60 alcanzaba para bcrypt; un hash de Argon2id con su prefijo ocupa unos 105 caracteres
+    @Size(min = 60, max = 255)
+    @Column(name = "password_hash", length = 255, nullable = false)
     private String password;
 
     @Size(max = 50)

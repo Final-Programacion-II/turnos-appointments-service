@@ -3,13 +3,16 @@ package ar.edu.um.turnos.appointments.config;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 import ar.edu.um.turnos.appointments.security.*;
+import java.util.Map;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
@@ -26,9 +29,20 @@ public class SecurityConfiguration {
         this.jHipsterProperties = jHipsterProperties;
     }
 
+    /**
+     * Las contraseñas nuevas se guardan con Argon2id, con el prefijo {argon2}.
+     * Los hashes sin prefijo son los bcrypt de los usuarios de ejemplo de JHipster: se siguen
+     * aceptando y, en el primer login correcto, se vuelven a guardar con Argon2id
+     * (ver DomainUserDetailsService#updatePassword).
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        DelegatingPasswordEncoder encoder = new DelegatingPasswordEncoder(
+            "argon2",
+            Map.of("argon2", Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8(), "bcrypt", new BCryptPasswordEncoder())
+        );
+        encoder.setDefaultPasswordEncoderForMatches(new BCryptPasswordEncoder());
+        return encoder;
     }
 
     @Bean
