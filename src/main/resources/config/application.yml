@@ -216,3 +216,9 @@ jhipster:
 # ===================================================================
 
 # application:
+
+catalog:
+  # Servicio de catálogo propio. A cada llamada se le reenvía el JWT del usuario.
+  base-url: ${CATALOG_BASE_URL:http://localhost:8081}
+  connect-timeout: 2s
+  read-timeout: 5s

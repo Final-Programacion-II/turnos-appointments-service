@@ -161,7 +161,8 @@ class UserServiceIT {
         Instant now = Instant.now();
         when(dateTimeProvider.getNow()).thenReturn(Optional.of(now.minus(4, ChronoUnit.DAYS)));
         user.setActivated(false);
-        user.setActivationKey(RandomStringUtils.insecure().next(20));
+        // nextAlphanumeric y no next: next puede generar el carácter 0x00, que PostgreSQL no acepta en un texto
+        user.setActivationKey(RandomStringUtils.insecure().nextAlphanumeric(20));
         User dbUser = userRepository.saveAndFlush(user);
         dbUser.setCreatedDate(now.minus(4, ChronoUnit.DAYS));
         userRepository.saveAndFlush(user);
