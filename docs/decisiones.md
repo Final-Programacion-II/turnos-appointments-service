@@ -90,3 +90,21 @@ manda el mail.
   sin activar se podía reemplazar con un registro nuevo.
 - Limitación: no se verifica que el email sea del usuario. Se puede agregar más adelante
   con un servidor SMTP.
+
+## 8. Proceso de reserva con estados locales
+
+Cada reserva se guarda en `reservation_process` desde que la cátedra crea el hold, con un
+estado propio (`HELD`, `WAITING_FOR_PHONE`, `CONFIRMED`, etc.). El detalle está en
+[reservas.md](reservas.md).
+
+- Motivo: las respuestas llegan por REST y por Kafka, en cualquier orden y a veces
+  repetidas. Con el estado guardado, cada respuesta se aplica solo si tiene sentido, y un
+  resultado (confirmada, vencida, inválida) nunca vuelve atrás.
+- Los cambios de estado usan un bloqueo de fila (`SELECT ... FOR UPDATE`) en una
+  transacción corta, para que una respuesta REST y un evento Kafka simultáneos no se pisen.
+- Las llamadas a la cátedra se hacen fuera de las transacciones de la base.
+- Si la confirmación inicial no llega, el proceso queda `HELD` y el usuario puede
+  reintentar. No hay reintentos automáticos.
+- Descartado: bloqueo optimista con `@Version`. También evita que se pisen, pero el que
+  pierde tiene que volver a leer y reintentar, y eso suma código en el listener de Kafka
+  sin ventajas con el poco tráfico que tiene cada proceso.

@@ -1,8 +1,12 @@
 package ar.edu.um.turnos.appointments.reservation.infrastructure.web;
 
 import ar.edu.um.turnos.appointments.reservation.domain.CatalogUnavailableException;
+import ar.edu.um.turnos.appointments.reservation.domain.CatedraRejectedException;
 import ar.edu.um.turnos.appointments.reservation.domain.CatedraUnavailableException;
+import ar.edu.um.turnos.appointments.reservation.domain.InvalidReservationStateException;
 import ar.edu.um.turnos.appointments.reservation.domain.ProfessionalNotFoundException;
+import ar.edu.um.turnos.appointments.reservation.domain.ReservationNotFoundException;
+import ar.edu.um.turnos.appointments.reservation.domain.SlotNotAvailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
@@ -26,6 +30,31 @@ public class ReservationExceptionHandler {
     @ExceptionHandler(ProfessionalNotFoundException.class)
     ProblemDetail professionalNotFound(ProfessionalNotFoundException e) {
         return problem(HttpStatus.NOT_FOUND, "PROFESSIONAL_NOT_FOUND", e.getMessage());
+    }
+
+    @ExceptionHandler(ReservationNotFoundException.class)
+    ProblemDetail reservationNotFound(ReservationNotFoundException e) {
+        return problem(HttpStatus.NOT_FOUND, "RESERVATION_NOT_FOUND", e.getMessage());
+    }
+
+    @ExceptionHandler(SlotNotAvailableException.class)
+    ProblemDetail slotNotAvailable(SlotNotAvailableException e) {
+        return problem(HttpStatus.CONFLICT, "SLOT_NOT_AVAILABLE", e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidReservationStateException.class)
+    ProblemDetail invalidState(InvalidReservationStateException e) {
+        return problem(HttpStatus.CONFLICT, "INVALID_RESERVATION_STATE", e.getMessage());
+    }
+
+    /**
+     * La cátedra rechazó el pedido (por ejemplo, SLOT_ALREADY_HELD): se devuelve el mismo status y
+     * el mismo code, para que la app pueda explicar qué pasó.
+     */
+    @ExceptionHandler(CatedraRejectedException.class)
+    ProblemDetail catedraRejected(CatedraRejectedException e) {
+        HttpStatus status = HttpStatus.resolve(e.httpStatus());
+        return problem(status == null ? HttpStatus.CONFLICT : status, e.code(), "El servicio central rechazó el pedido (" + e.code() + ")");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
