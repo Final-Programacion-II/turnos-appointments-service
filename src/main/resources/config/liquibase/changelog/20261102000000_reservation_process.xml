@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Procesos de reserva, uno por cada hold pedido a la cátedra.
+        Los datos del profesional son una foto del momento de la reserva, no el catálogo vigente.
+    -->
+    <changeSet id="20261102000000-1" author="facumangione">
+        <createTable tableName="reservation_process">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="owner_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="professional_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="professional_external_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="professional_name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="category_name" type="varchar(255)"/>
+            <column name="appointment_date" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_time" type="${timeType}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_time" type="${timeType}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="external_patient_id" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="patient_first_name" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="patient_last_name" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="hold_id" type="varchar(100)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="ux_reservation_process_hold_id"/>
+            </column>
+            <column name="reservation_process_id" type="varchar(100)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="ux_reservation_process_process_id"/>
+            </column>
+            <column name="status" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expires_at" type="${datetimeType}"/>
+            <column name="request_event_id" type="varchar(100)"/>
+            <column name="phone_number" type="varchar(30)"/>
+            <column name="reservation_id" type="bigint"/>
+            <column name="status_reason" type="varchar(500)"/>
+            <column name="created_at" type="${datetimeType}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="${datetimeType}">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="reservation_process"
+                                 baseColumnNames="owner_id"
+                                 constraintName="fk_reservation_process_owner"
+                                 referencedTableName="jhi_user"
+                                 referencedColumnNames="id"/>
+
+        <!-- "Mis reservas" filtra siempre por dueño -->
+        <createIndex tableName="reservation_process" indexName="idx_reservation_process_owner">
+            <column name="owner_id"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>
