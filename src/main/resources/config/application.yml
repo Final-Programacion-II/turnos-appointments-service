@@ -222,3 +222,12 @@ catalog:
   base-url: ${CATALOG_BASE_URL:http://localhost:8081}
   connect-timeout: 2s
   read-timeout: 5s
+
+catedra:
+  # API de la cátedra y JWT técnico de la cuenta de integración (solo por variables de entorno)
+  base-url: ${CATEDRA_BASE_URL:}
+  token: ${CATEDRA_TOKEN:}
+
+reservation:
+  # Zona de los consultorios: define qué es "hoy" y qué turnos ya pasaron
+  zone: America/Argentina/Mendoza
