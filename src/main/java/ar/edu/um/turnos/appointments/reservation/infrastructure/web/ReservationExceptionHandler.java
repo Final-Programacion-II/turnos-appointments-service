@@ -3,6 +3,7 @@ package ar.edu.um.turnos.appointments.reservation.infrastructure.web;
 import ar.edu.um.turnos.appointments.reservation.domain.CatalogUnavailableException;
 import ar.edu.um.turnos.appointments.reservation.domain.CatedraRejectedException;
 import ar.edu.um.turnos.appointments.reservation.domain.CatedraUnavailableException;
+import ar.edu.um.turnos.appointments.reservation.domain.InvalidPhoneNumberException;
 import ar.edu.um.turnos.appointments.reservation.domain.InvalidReservationStateException;
 import ar.edu.um.turnos.appointments.reservation.domain.ProfessionalNotFoundException;
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationNotFoundException;
@@ -40,6 +41,11 @@ public class ReservationExceptionHandler {
     @ExceptionHandler(SlotNotAvailableException.class)
     ProblemDetail slotNotAvailable(SlotNotAvailableException e) {
         return problem(HttpStatus.CONFLICT, "SLOT_NOT_AVAILABLE", e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidPhoneNumberException.class)
+    ProblemDetail invalidPhone(InvalidPhoneNumberException e) {
+        return problem(HttpStatus.BAD_REQUEST, "INVALID_PHONE_NUMBER", e.getMessage());
     }
 
     @ExceptionHandler(InvalidReservationStateException.class)

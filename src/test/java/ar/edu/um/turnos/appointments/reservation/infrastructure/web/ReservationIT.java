@@ -1,10 +1,12 @@
 package ar.edu.um.turnos.appointments.reservation.infrastructure.web;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
@@ -15,13 +17,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import ar.edu.um.turnos.appointments.IntegrationTest;
+import ar.edu.um.turnos.appointments.reservation.application.CatedraEvent;
+import ar.edu.um.turnos.appointments.reservation.application.CatedraEventService;
 import ar.edu.um.turnos.appointments.reservation.domain.CatedraRejectedException;
 import ar.edu.um.turnos.appointments.reservation.domain.CatedraUnavailableException;
 import ar.edu.um.turnos.appointments.reservation.domain.Occupancy;
 import ar.edu.um.turnos.appointments.reservation.domain.ProfessionalAgenda;
 import ar.edu.um.turnos.appointments.reservation.ports.out.CatedraReservations;
 import ar.edu.um.turnos.appointments.reservation.ports.out.OccupancySource;
+import ar.edu.um.turnos.appointments.reservation.ports.out.PhoneSubmissionPublisher;
 import ar.edu.um.turnos.appointments.reservation.ports.out.ProfessionalAgendaSource;
+import ar.edu.um.turnos.appointments.reservation.ports.out.ReservationProcessRepository.EventResult;
 import com.jayway.jsonpath.JsonPath;
 import jakarta.persistence.EntityManager;
 import java.time.DayOfWeek;
@@ -75,6 +81,13 @@ class ReservationIT {
 
     @MockitoBean
     private CatedraReservations catedra;
+
+    @MockitoBean
+    private PhoneSubmissionPublisher phonePublisher;
+
+    // El listener de Kafka está apagado en los tests: los eventos se aplican llamando a este servicio
+    @Autowired
+    private CatedraEventService catedraEvents;
 
     @BeforeEach
     void catalogoConUnaAgenda() {
@@ -197,6 +210,78 @@ class ReservationIT {
     }
 
     @Test
+    void flujoCompletoConTelefonoYConfirmacion() throws Exception {
+        holdYConfirmacionOk();
+        Number id = reservar(ANA, "09:30");
+
+        // La cátedra pide el teléfono
+        assertThat(catedraEvents.handle(evento("request-1", CatedraEvent.Type.PHONE_REQUESTED))).isEqualTo(EventResult.APPLIED);
+        enLaBase();
+        mockMvc
+            .perform(get(URL + "/" + id).with(usuario(ANA)))
+            .andExpect(jsonPath("$.status").value("WAITING_FOR_PHONE"))
+            .andExpect(jsonPath("$.phoneRequested").value(true));
+
+        // El usuario lo manda
+        mockMvc
+            .perform(
+                post(URL + "/" + id + "/phone")
+                    .with(usuario(ANA))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(telefono("+54 9 261 555-1234"))
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("PHONE_SUBMITTED"));
+        verify(phonePublisher, times(1)).publish(any());
+
+        // La cátedra confirma; el mismo evento repetido y un vencimiento tardío no cambian nada
+        assertThat(catedraEvents.handle(evento("confirmation-1", CatedraEvent.Type.CONFIRMED))).isEqualTo(EventResult.APPLIED);
+        assertThat(catedraEvents.handle(evento("confirmation-1", CatedraEvent.Type.CONFIRMED))).isEqualTo(EventResult.DUPLICATE);
+        catedraEvents.handle(evento("expired-1", CatedraEvent.Type.EXPIRED));
+        enLaBase();
+
+        mockMvc
+            .perform(get(URL + "/" + id).with(usuario(ANA)))
+            .andExpect(jsonPath("$.status").value("CONFIRMED"))
+            .andExpect(jsonPath("$.phoneRequested").value(false));
+    }
+
+    @Test
+    void elTelefonoAntesDeQueLaCatedraLoPidaDa409() throws Exception {
+        holdYConfirmacionOk();
+        Number id = reservar(ANA, "09:30");
+
+        mockMvc
+            .perform(
+                post(URL + "/" + id + "/phone")
+                    .with(usuario(ANA))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(telefono("+5492615551234"))
+            )
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value("INVALID_RESERVATION_STATE"));
+        verify(phonePublisher, never()).publish(any());
+    }
+
+    @Test
+    void unTelefonoInvalidoDa400() throws Exception {
+        holdYConfirmacionOk();
+        Number id = reservar(ANA, "09:30");
+        catedraEvents.handle(evento("request-1", CatedraEvent.Type.PHONE_REQUESTED));
+
+        mockMvc
+            .perform(
+                post(URL + "/" + id + "/phone")
+                    .with(usuario(ANA))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(telefono("123"))
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("INVALID_PHONE_NUMBER"));
+        verify(phonePublisher, never()).publish(any());
+    }
+
+    @Test
     void sinUsuarioDa401() throws Exception {
         mockMvc.perform(post(URL).contentType(MediaType.APPLICATION_JSON).content(pedido("09:30"))).andExpect(status().isUnauthorized());
     }
@@ -216,6 +301,23 @@ class ReservationIT {
             .getResponse()
             .getContentAsString();
         return JsonPath.read(respuesta, "$.id");
+    }
+
+    private static CatedraEvent evento(String eventId, CatedraEvent.Type tipo) {
+        Long reservationId = tipo == CatedraEvent.Type.CONFIRMED ? 8251L : null;
+        return new CatedraEvent(eventId, tipo, "process-1", reservationId, VENCE, "HOLD_EXPIRED", null);
+    }
+
+    /**
+     * Escribe en la base y olvida la copia en memoria: lo siguiente se lee de PostgreSQL.
+     */
+    private void enLaBase() {
+        em.flush();
+        em.clear();
+    }
+
+    private static String telefono(String numero) {
+        return "{ \"phoneNumber\": \"" + numero + "\" }";
     }
 
     private static String pedido(String hora) {

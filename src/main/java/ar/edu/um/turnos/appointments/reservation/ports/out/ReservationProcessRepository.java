@@ -17,7 +17,22 @@ public interface ReservationProcessRepository {
 
     /**
      * Lee el proceso, le aplica el cambio y lo guarda, todo en una transacción y con el registro
-     * bloqueado. Así una respuesta REST y un evento Kafka que llegan juntos no se pisan.
+     * bloqueado. Así una respuesta REST y un evento Kafka que llegan juntos no se pisen.
      */
     ReservationProcess update(long id, Consumer<ReservationProcess> change);
+
+    /**
+     * Aplica un evento de Kafka una sola vez. En la misma transacción se bloquea el proceso, se
+     * aplica el cambio y se guarda el eventId: o queda todo o no queda nada. Si el evento llega de
+     * nuevo, se reconoce por el eventId y no se aplica otra vez.
+     */
+    EventResult applyOnce(String reservationProcessId, String eventId, Consumer<ReservationProcess> change);
+
+    enum EventResult {
+        APPLIED,
+        /** El eventId ya se había procesado. */
+        DUPLICATE,
+        /** No hay ningún proceso con ese reservationProcessId. */
+        UNKNOWN_PROCESS,
+    }
 }

@@ -92,3 +92,8 @@ management:
   health:
     mail:
       enabled: false
+
+# En los tests no se escucha Kafka: los ITs llaman directo al código que aplica los eventos
+catedra:
+  kafka:
+    enabled: false

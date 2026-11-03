@@ -71,6 +71,11 @@
             <version>${bouncycastle.version}</version>
         </dependency>
         <dependency>
+            <!-- Kafka de la cátedra: pedidos de teléfono y resultados de las reservas -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-kafka</artifactId>
+        </dependency>
+        <dependency>
             <groupId>tech.jhipster</groupId>
             <artifactId>jhipster-framework</artifactId>
             <version>${jhipster-framework.version}</version>

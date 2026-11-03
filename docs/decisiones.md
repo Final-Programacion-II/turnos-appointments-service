@@ -108,3 +108,20 @@ estado propio (`HELD`, `WAITING_FOR_PHONE`, `CONFIRMED`, etc.). El detalle está
 - Descartado: bloqueo optimista con `@Version`. También evita que se pisen, pero el que
   pierde tiene que volver a leer y reintentar, y eso suma código en el listener de Kafka
   sin ventajas con el poco tráfico que tiene cada proceso.
+
+## 9. Eventos de Kafka aplicados una sola vez
+
+Los eventos de reservas se aplican con un registro de `eventId` en la tabla
+`processed_reservation_event`, guardado en la misma transacción que el cambio de estado.
+
+- Motivo: Kafka entrega al menos una vez. Si el `eventId` se guardara aparte, una caída
+  entre los dos pasos podría dejar el cambio sin registrar (y aplicarlo dos veces) o el
+  registro sin el cambio (y perder el evento).
+- El `eventId` se consulta después de bloquear el proceso. Así, dos copias del mismo evento
+  que llegan juntas se procesan una detrás de la otra, y la segunda se reconoce como repetida.
+- El teléfono se publica primero y el estado se cambia después. Si se cambiara antes y el
+  envío fallara, habría que volver el estado atrás.
+- Descartado: confiar solo en que el dominio ignora los eventos repetidos. Sirve para casi
+  todos, pero no para un rechazo de teléfono repetido, que volvería a pedir un teléfono que
+  ya se mandó.
+
