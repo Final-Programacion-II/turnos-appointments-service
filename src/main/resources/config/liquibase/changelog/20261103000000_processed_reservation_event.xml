@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Eventos de Kafka de reservas que ya se aplicaron. Kafka puede entregar un evento más de
+        una vez: si su eventId está acá, se ignora.
+    -->
+    <changeSet id="20261103000000-1" author="facumangione">
+        <createTable tableName="processed_reservation_event">
+            <column name="event_id" type="varchar(100)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="reservation_process_id" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="processed_at" type="${datetimeType}">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

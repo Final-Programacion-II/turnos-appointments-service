@@ -77,6 +77,55 @@ revelar qué ids existen.
 A la cátedra se le manda `externalPatientId = "user-{id}"`, armado con el id interno del
 usuario, que no cambia aunque cambie su login o su email.
 
+## Teléfono y resultados (Kafka)
+
+Después de la confirmación inicial, el resto del proceso va por Kafka:
+
+```mermaid
+sequenceDiagram
+    participant App as App
+    participant T as Turnos
+    participant KA as Kafka acciones
+    participant KP as Kafka teléfono
+
+    KA-->>T: AdditionalInformationRequested (eventId)
+    Note over T: guarda el eventId como requestEventId
+    App->>T: POST /api/reservations/{id}/phone
+    T->>KP: AdditionalInformationSubmitted (requestEventId, teléfono)
+    Note over T: PHONE_SUBMITTED
+    KA-->>T: AppointmentConfirmed / Rejected / Expired / Invalid
+    App->>T: GET /api/reservations/{id}
+```
+
+**Recibir eventos** (`CatedraActionsListener`):
+
+- Cada evento se aplica una sola vez. En la misma transacción se bloquea el proceso, se
+  aplica el cambio y se guarda el `eventId` en `processed_reservation_event`. Si el evento
+  llega de nuevo, se reconoce por el `eventId` y se ignora.
+- Si el evento no corresponde al estado actual (por ejemplo, un vencimiento que llega
+  después de la confirmación), el dominio no lo aplica.
+- Un mensaje que no se puede leer, o de un tipo desconocido, se registra en el log y se
+  saltea: reintentarlo no lo arregla.
+- Si falla la base, Spring Kafka reintenta 5 veces, con 2 segundos entre intentos. Después
+  lo registra y sigue con el próximo, para no trabar el topic.
+- Con un consumer group nuevo, se lee el topic desde el principio. Así no se pierden los
+  eventos que llegaron mientras el servicio estaba apagado.
+
+**Mandar el teléfono** (`POST /api/reservations/{id}/phone`):
+
+1. Se revisa que la cátedra ya lo haya pedido y que el proceso no haya vencido. Si no,
+   409 `INVALID_RESERVATION_STATE`.
+2. Se limpia y se valida igual que lo hace la cátedra: se sacan espacios, guiones,
+   paréntesis y puntos, y tiene que quedar `^\+?[0-9]{7,15}$`. Si no, 400
+   `INVALID_PHONE_NUMBER`, sin gastar un intento.
+3. Se publica en Kafka y se espera la confirmación del envío (hasta 10 segundos). La
+   message key es el `reservationProcessId`.
+4. Recién ahí el proceso pasa a `PHONE_SUBMITTED`. Si Kafka no responde, se devuelve 503 y
+   el proceso sigue esperando el teléfono, así que se puede volver a intentar.
+
+Cada envío lleva un `eventId` nuevo, como pide la cátedra para mandar otro teléfono después
+de un rechazo.
+
 ## Endpoints
 
 | Método | Ruta | Qué hace |
@@ -84,6 +133,9 @@ usuario, que no cambia aunque cambie su login o su email.
 | POST | `/api/reservations` | Empieza una reserva (hold + confirmación inicial) |
 | GET | `/api/reservations/{id}` | Estado de una reserva propia |
 | POST | `/api/reservations/{id}/confirm` | Reintenta la confirmación inicial si quedó `HELD` |
+| POST | `/api/reservations/{id}/phone` | Manda el teléfono que pidió la cátedra |
+
+En la respuesta, `phoneRequested: true` indica que la app tiene que pedir el teléfono.
 
 ## Prueba contra la cátedra (2/11)
 
@@ -99,8 +151,22 @@ Con Romina Acosta (id local 1068, id de la cátedra 218), martes 3/11 a las 13:0
   cátedra rechaza el segundo hold, pero el usuario se entera recién al intentar reservarlo.
   Se consultó a la cátedra si es el comportamiento esperado.
 
+## Prueba de Kafka contra la cátedra (3/11)
+
+- Turnos se suscribió a `alumnos.turnos.acciones.turnos-facundo-mangione`. Como el
+  consumer group era nuevo, empezó a leer la partición 0 desde el offset 0.
+- No llegó ningún evento. Las reservas de prueba (Romina Acosta, 10/11, 13:00 y 13:30)
+  quedaron en `WAITING_FOR_PHONE` sin `phoneRequested`, y mandar el teléfono dio 409
+  `INVALID_RESERVATION_STATE`, como corresponde.
+- En `GET /api/appointments` de la cátedra, esas reservas y la del 2/11 figuran como
+  `FAILED`. O sea que la cátedra las procesó y las venció, pero no publicó ni el pedido de
+  teléfono ni el vencimiento en nuestro topic. Se consultó al profesor.
+- `GET /api/appointments` con `from`/`to` responde 500 "Failure during data access". Sin
+  filtros, o con `status` o `externalPatientId`, responde bien.
+- El filtro por `externalPatientId` permite saber el estado real de nuestros procesos por
+  REST. Se va a usar para reconciliar los procesos abiertos cuando no lleguen los eventos.
+
 ## Pendiente
 
-- Pedido de teléfono, envío y resultados por Kafka.
 - Listado de reservas propias y cancelación.
-- Revisar al arrancar los procesos abiertos que ya vencieron.
+- Reconciliar por REST los procesos abiertos que vencieron sin recibir su resultado por Kafka.

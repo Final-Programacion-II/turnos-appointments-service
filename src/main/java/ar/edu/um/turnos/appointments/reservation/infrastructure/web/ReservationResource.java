@@ -71,6 +71,16 @@ public class ReservationResource {
         return ReservationDTO.of(reservationService.retryConfirmation(currentUserId(), id));
     }
 
+    /**
+     * {@code POST /api/reservations/{id}/phone}: manda el teléfono que pidió la cátedra.
+     * Responde con el proceso en PHONE_SUBMITTED; el resultado llega después por Kafka y se ve
+     * consultando la reserva.
+     */
+    @PostMapping("/{id}/phone")
+    public ReservationDTO submitPhone(@PathVariable("id") long id, @Valid @RequestBody PhoneRequest request) {
+        return ReservationDTO.of(reservationService.submitPhone(currentUserId(), id, request.phoneNumber()));
+    }
+
     private static long currentUserId() {
         // Los tokens que emite este servicio traen el claim userId
         return SecurityUtils.getCurrentUserId().orElseThrow(() -> new AccessDeniedException("El token no identifica al usuario"));
@@ -88,8 +98,15 @@ public class ReservationResource {
     ) {}
 
     /**
+     * El formato lo valida el dominio, igual que la cátedra (acepta espacios, guiones y paréntesis).
+     */
+    public record PhoneRequest(@NotBlank @Size(max = 30) String phoneNumber) {}
+
+    /**
      * Lo que ve el usuario. Los ids internos de la cátedra (holdId, reservationProcessId) no se
      * muestran: la app no los necesita.
+     *
+     * @param phoneRequested la cátedra ya pidió el teléfono: la app puede mostrar el campo para cargarlo.
      */
     public record ReservationDTO(
         long id,
@@ -103,6 +120,7 @@ public class ReservationResource {
         String patientFirstName,
         String patientLastName,
         Instant expiresAt,
+        boolean phoneRequested,
         String statusReason
     ) {
         static ReservationDTO of(ReservationProcess p) {
@@ -118,6 +136,7 @@ public class ReservationResource {
                 p.patient().firstName(),
                 p.patient().lastName(),
                 p.expiresAt(),
+                p.status() == ReservationStatus.WAITING_FOR_PHONE && p.requestEventId() != null,
                 p.statusReason()
             );
         }

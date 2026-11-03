@@ -146,7 +146,7 @@ public class ReservationProcess {
     /**
      * AppointmentConfirmed: el turno quedó reservado.
      */
-    public boolean confirmed(long reservationId, Instant now) {
+    public boolean confirmed(Long reservationId, Instant now) {
         if (!status.isOpen()) {
             return false;
         }
@@ -192,15 +192,30 @@ public class ReservationProcess {
     // --- Acciones del usuario ---
 
     /**
-     * El usuario informó su teléfono. Solo tiene sentido si la cátedra ya lo pidió.
+     * Se puede mandar el teléfono si la cátedra ya lo pidió (hay requestEventId) y el proceso
+     * no venció. Se revisa antes de publicar el mensaje en Kafka.
      */
-    public void phoneSubmitted(String phoneNumber, Instant now) {
+    public void ensurePhoneCanBeSubmitted(Instant now) {
         if (status != ReservationStatus.WAITING_FOR_PHONE || requestEventId == null) {
             throw new InvalidReservationStateException("No se puede enviar el teléfono en el estado " + status);
+        }
+        if (expiresAt != null && !now.isBefore(expiresAt)) {
+            throw new InvalidReservationStateException("El proceso de reserva venció");
+        }
+    }
+
+    /**
+     * El teléfono ya se publicó en Kafka. Si mientras tanto llegó un resultado (por ejemplo,
+     * la confirmación), no cambia nada: el resultado manda.
+     */
+    public boolean phoneSubmitted(String phoneNumber, Instant now) {
+        if (status != ReservationStatus.WAITING_FOR_PHONE) {
+            return false;
         }
         status = ReservationStatus.PHONE_SUBMITTED;
         this.phoneNumber = phoneNumber;
         changed(now, null);
+        return true;
     }
 
     public boolean belongsTo(long userId) {

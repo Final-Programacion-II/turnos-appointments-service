@@ -35,7 +35,7 @@ class ReservationProcessTest {
         proceso.phoneSubmitted("+5492615551234", AHORA);
         assertThat(proceso.status()).isEqualTo(ReservationStatus.PHONE_SUBMITTED);
 
-        assertThat(proceso.confirmed(8251, AHORA)).isTrue();
+        assertThat(proceso.confirmed(8251L, AHORA)).isTrue();
         assertThat(proceso.status()).isEqualTo(ReservationStatus.CONFIRMED);
         assertThat(proceso.reservationId()).isEqualTo(8251);
     }
@@ -72,7 +72,27 @@ class ReservationProcessTest {
         proceso.initialConfirmationAccepted(VENCE, AHORA);
 
         // Falta el AdditionalInformationRequested (y su eventId, que hay que devolver)
-        assertThatThrownBy(() -> proceso.phoneSubmitted("+5492615551234", AHORA)).isInstanceOf(InvalidReservationStateException.class);
+        assertThatThrownBy(() -> proceso.ensurePhoneCanBeSubmitted(AHORA)).isInstanceOf(InvalidReservationStateException.class);
+    }
+
+    @Test
+    void noSeMandaElTelefonoSiElProcesoVencio() {
+        ReservationProcess proceso = esperandoTelefono();
+
+        assertThatThrownBy(() -> proceso.ensurePhoneCanBeSubmitted(VENCE))
+            .isInstanceOf(InvalidReservationStateException.class)
+            .hasMessageContaining("venció");
+    }
+
+    @Test
+    void siElResultadoLlegaAntesQueElTelefonoNoSeRetrocede() {
+        ReservationProcess proceso = esperandoTelefono();
+        proceso.ensurePhoneCanBeSubmitted(AHORA);
+        // Mientras se publicaba el teléfono, llegó la confirmación por Kafka
+        proceso.confirmed(8251L, AHORA);
+
+        assertThat(proceso.phoneSubmitted("+5492615551234", AHORA)).isFalse();
+        assertThat(proceso.status()).isEqualTo(ReservationStatus.CONFIRMED);
     }
 
     @Test
@@ -81,7 +101,7 @@ class ReservationProcessTest {
         proceso.expired("HOLD_EXPIRED", AHORA);
 
         // Avisos tardíos o repetidos: no cambian nada
-        assertThat(proceso.confirmed(8251, AHORA)).isFalse();
+        assertThat(proceso.confirmed(8251L, AHORA)).isFalse();
         assertThat(proceso.phoneRequested("request-2", VENCE_DESPUES, AHORA)).isFalse();
         assertThat(proceso.initialConfirmationAccepted(VENCE_DESPUES, AHORA)).isFalse();
         assertThat(proceso.invalid("REQUEST_EVENT_MISMATCH", AHORA)).isFalse();
@@ -94,11 +114,11 @@ class ReservationProcessTest {
     @Test
     void unaConfirmadaNoVenceNiSeInvalida() {
         ReservationProcess proceso = esperandoTelefono();
-        proceso.confirmed(8251, AHORA);
+        proceso.confirmed(8251L, AHORA);
 
         assertThat(proceso.expired("HOLD_EXPIRED", AHORA)).isFalse();
         assertThat(proceso.invalid("REQUEST_EVENT_MISMATCH", AHORA)).isFalse();
-        assertThat(proceso.confirmed(8251, AHORA)).isFalse();
+        assertThat(proceso.confirmed(8251L, AHORA)).isFalse();
 
         assertThat(proceso.status()).isEqualTo(ReservationStatus.CONFIRMED);
     }
@@ -110,7 +130,7 @@ class ReservationProcessTest {
         assertThat(abierta.status()).isEqualTo(ReservationStatus.WAITING_FOR_PHONE);
 
         ReservationProcess confirmada = esperandoTelefono();
-        confirmada.confirmed(8251, AHORA);
+        confirmada.confirmed(8251L, AHORA);
         assertThat(confirmada.cancelled("Cambio de planes", AHORA)).isTrue();
         assertThat(confirmada.status()).isEqualTo(ReservationStatus.CANCELLED);
 
