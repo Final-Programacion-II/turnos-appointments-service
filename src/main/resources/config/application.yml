@@ -110,6 +110,15 @@ spring:
         #- tls
   jmx:
     enabled: false
+  kafka:
+    # Kafka de la cátedra. La dirección va por SPRING_KAFKA_BOOTSTRAP_SERVERS.
+    producer:
+      acks: all
+      properties:
+        # Si Kafka no responde, el envío del teléfono falla en segundos y no deja colgado al usuario
+        max.block.ms: 5000
+        request.timeout.ms: 5000
+        delivery.timeout.ms: 10000
   data:
     jpa:
       repositories:
@@ -227,6 +236,14 @@ catedra:
   # API de la cátedra y JWT técnico de la cuenta de integración (solo por variables de entorno)
   base-url: ${CATEDRA_BASE_URL:}
   token: ${CATEDRA_TOKEN:}
+  # groupId de la cuenta de integración: va dentro de cada mensaje que se publica
+  group-id: ${CATEDRA_GROUP_ID:}
+  kafka:
+    enabled: ${CATEDRA_KAFKA_ENABLED:true}
+    # Consumer group de este servicio (distinto del que usa el catálogo)
+    group-id: ${CATEDRA_KAFKA_GROUP_ID:turnos-local}
+    actions-topic: ${CATEDRA_KAFKA_ACTIONS_TOPIC:alumnos.turnos.acciones.local}
+    phone-topic: ${CATEDRA_KAFKA_PHONE_TOPIC:catedra.turnos.telefono.local}
 
 reservation:
   # Zona de los consultorios: define qué es "hoy" y qué turnos ya pasaron

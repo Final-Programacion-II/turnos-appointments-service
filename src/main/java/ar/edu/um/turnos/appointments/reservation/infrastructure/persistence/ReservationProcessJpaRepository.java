@@ -15,4 +15,11 @@ public interface ReservationProcessJpaRepository extends JpaRepository<Reservati
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from ReservationProcessEntity p where p.id = :id")
     Optional<ReservationProcessEntity> findByIdForUpdate(@Param("id") Long id);
+
+    /**
+     * Igual, pero buscando por el id que usa la cátedra en los eventos de Kafka.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from ReservationProcessEntity p where p.reservationProcessId = :processId")
+    Optional<ReservationProcessEntity> findByReservationProcessIdForUpdate(@Param("processId") String processId);
 }

@@ -5,21 +5,24 @@ import ar.edu.um.turnos.appointments.reservation.domain.AvailableSlot;
 import ar.edu.um.turnos.appointments.reservation.domain.CatedraRejectedException;
 import ar.edu.um.turnos.appointments.reservation.domain.CatedraUnavailableException;
 import ar.edu.um.turnos.appointments.reservation.domain.Patient;
+import ar.edu.um.turnos.appointments.reservation.domain.PhoneNumber;
 import ar.edu.um.turnos.appointments.reservation.domain.ProfessionalAgenda;
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationNotFoundException;
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationProcess;
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationStatus;
 import ar.edu.um.turnos.appointments.reservation.domain.SlotNotAvailableException;
 import ar.edu.um.turnos.appointments.reservation.ports.out.CatedraReservations;
+import ar.edu.um.turnos.appointments.reservation.ports.out.PhoneSubmissionPublisher;
 import ar.edu.um.turnos.appointments.reservation.ports.out.ReservationProcessRepository;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 
 /**
- * Empieza una reserva: valida el turno, pide el hold a la cátedra, lo guarda y hace la
- * confirmación inicial. El resto del proceso (teléfono y resultado) llega por Kafka.
+ * Acciones del usuario sobre sus reservas: empezarla (hold + confirmación inicial), reintentar
+ * la confirmación y mandar el teléfono. Los resultados llegan por Kafka (CatedraEventService).
  *
  * Las llamadas a la cátedra se hacen fuera de cualquier transacción de la base: una llamada
  * lenta no deja registros bloqueados.
@@ -29,17 +32,20 @@ public class ReservationService {
     private final AvailabilityService availability;
     private final CatedraReservations catedra;
     private final ReservationProcessRepository processes;
+    private final PhoneSubmissionPublisher phonePublisher;
     private final Clock clock;
 
     public ReservationService(
         AvailabilityService availability,
         CatedraReservations catedra,
         ReservationProcessRepository processes,
+        PhoneSubmissionPublisher phonePublisher,
         Clock clock
     ) {
         this.availability = availability;
         this.catedra = catedra;
         this.processes = processes;
+        this.phonePublisher = phonePublisher;
         this.clock = clock;
     }
 
@@ -95,6 +101,29 @@ public class ReservationService {
             return process;
         }
         return confirmInitially(process, true);
+    }
+
+    /**
+     * Manda a la cátedra el teléfono que pidió. Primero se publica en Kafka y, solo si salió, se
+     * marca PHONE_SUBMITTED: si Kafka no responde, el proceso sigue esperando el teléfono y el
+     * usuario puede volver a intentar.
+     */
+    public ReservationProcess submitPhone(long ownerId, long id, String rawPhone) {
+        ReservationProcess process = get(ownerId, id);
+        PhoneNumber phone = PhoneNumber.of(rawPhone);
+        process.ensurePhoneCanBeSubmitted(now());
+
+        phonePublisher.publish(
+            new PhoneSubmissionPublisher.PhoneSubmission(
+                UUID.randomUUID().toString(),
+                process.reservationProcessId(),
+                process.holdId(),
+                process.requestEventId(),
+                phone.value(),
+                now()
+            )
+        );
+        return processes.update(id, p -> p.phoneSubmitted(phone.value(), now()));
     }
 
     /**

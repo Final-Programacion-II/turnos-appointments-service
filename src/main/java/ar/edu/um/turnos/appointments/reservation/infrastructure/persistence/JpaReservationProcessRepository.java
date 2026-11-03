@@ -5,6 +5,7 @@ import ar.edu.um.turnos.appointments.reservation.domain.Patient;
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationNotFoundException;
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationProcess;
 import ar.edu.um.turnos.appointments.reservation.ports.out.ReservationProcessRepository;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
@@ -17,9 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class JpaReservationProcessRepository implements ReservationProcessRepository {
 
     private final ReservationProcessJpaRepository jpa;
+    private final ProcessedReservationEventJpaRepository processedEvents;
 
-    public JpaReservationProcessRepository(ReservationProcessJpaRepository jpa) {
+    public JpaReservationProcessRepository(ReservationProcessJpaRepository jpa, ProcessedReservationEventJpaRepository processedEvents) {
         this.jpa = jpa;
+        this.processedEvents = processedEvents;
     }
 
     @Override
@@ -59,6 +62,26 @@ public class JpaReservationProcessRepository implements ReservationProcessReposi
         // Hibernate guarda los cambios de la entidad al terminar la transacción
         copyChangingFields(process, entity);
         return process;
+    }
+
+    @Override
+    @Transactional
+    public EventResult applyOnce(String reservationProcessId, String eventId, Consumer<ReservationProcess> change) {
+        Optional<ReservationProcessEntity> found = jpa.findByReservationProcessIdForUpdate(reservationProcessId);
+        if (found.isEmpty()) {
+            return EventResult.UNKNOWN_PROCESS;
+        }
+        // Se pregunta por el eventId después de bloquear el proceso: si llegan dos copias del mismo
+        // evento a la vez, la segunda espera el bloqueo y para entonces ya ve la primera registrada.
+        if (processedEvents.existsById(eventId)) {
+            return EventResult.DUPLICATE;
+        }
+        ReservationProcessEntity entity = found.orElseThrow();
+        ReservationProcess process = toDomain(entity);
+        change.accept(process);
+        copyChangingFields(process, entity);
+        processedEvents.save(new ProcessedReservationEventEntity(eventId, reservationProcessId, Instant.now()));
+        return EventResult.APPLIED;
     }
 
     /**
