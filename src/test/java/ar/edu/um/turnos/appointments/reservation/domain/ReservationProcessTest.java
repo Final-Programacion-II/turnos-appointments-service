@@ -156,6 +156,60 @@ class ReservationProcessTest {
         assertThat(proceso.belongsTo(8)).isFalse();
     }
 
+    @Test
+    void laReconciliacionAplicaElEstadoDeLaCatedra() {
+        ReservationProcess confirmada = esperandoTelefono();
+        assertThat(confirmada.reconcileWith(remota(CatedraAppointment.Status.CONFIRMED), AHORA)).isTrue();
+        assertThat(confirmada.status()).isEqualTo(ReservationStatus.CONFIRMED);
+        assertThat(confirmada.reservationId()).isEqualTo(8251L);
+
+        ReservationProcess fallida = esperandoTelefono();
+        assertThat(fallida.reconcileWith(remota(CatedraAppointment.Status.FAILED), AHORA)).isTrue();
+        assertThat(fallida.status()).isEqualTo(ReservationStatus.EXPIRED);
+        assertThat(fallida.statusReason()).isEqualTo("FAILED");
+
+        ReservationProcess pendiente = esperandoTelefono();
+        assertThat(pendiente.reconcileWith(remota(CatedraAppointment.Status.PHONE_PENDING), AHORA)).isFalse();
+        assertThat(pendiente.status()).isEqualTo(ReservationStatus.WAITING_FOR_PHONE);
+    }
+
+    @Test
+    void unaCanceladaQueNoVimosConfirmarseQuedaCancelada() {
+        ReservationProcess proceso = esperandoTelefono();
+
+        assertThat(proceso.reconcileWith(remota(CatedraAppointment.Status.CANCELLED), AHORA)).isTrue();
+
+        assertThat(proceso.status()).isEqualTo(ReservationStatus.CANCELLED);
+        assertThat(proceso.reservationId()).isEqualTo(8251L);
+        assertThat(proceso.statusReason()).isEqualTo("Cambio solicitado por el usuario");
+    }
+
+    @Test
+    void laReconciliacionNoReabreUnResultado() {
+        ReservationProcess proceso = esperandoTelefono();
+        proceso.confirmed(8251L, AHORA);
+
+        assertThat(proceso.reconcileWith(remota(CatedraAppointment.Status.FAILED), AHORA)).isFalse();
+        assertThat(proceso.status()).isEqualTo(ReservationStatus.CONFIRMED);
+    }
+
+    @Test
+    void unHoldSinReservaEnLaCatedraVence() {
+        ReservationProcess retenido = nuevo();
+        assertThat(retenido.holdExpiredWithoutReservation(AHORA)).isTrue();
+        assertThat(retenido.status()).isEqualTo(ReservationStatus.EXPIRED);
+
+        // Si ya se había confirmado inicialmente, la reserva tiene que existir: no se adivina
+        ReservationProcess confirmado = esperandoTelefono();
+        assertThat(confirmado.holdExpiredWithoutReservation(AHORA)).isFalse();
+        assertThat(confirmado.status()).isEqualTo(ReservationStatus.WAITING_FOR_PHONE);
+    }
+
+    private static CatedraAppointment remota(CatedraAppointment.Status estado) {
+        String motivo = estado == CatedraAppointment.Status.CANCELLED ? "Cambio solicitado por el usuario" : null;
+        return new CatedraAppointment("process-1", estado, 8251L, motivo);
+    }
+
     private static ReservationProcess esperandoTelefono() {
         ReservationProcess proceso = nuevo();
         proceso.phoneRequested("request-1", VENCE, AHORA);

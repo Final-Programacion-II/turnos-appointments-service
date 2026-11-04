@@ -125,3 +125,20 @@ Los eventos de reservas se aplican con un registro de `eventId` en la tabla
   todos, pero no para un rechazo de teléfono repetido, que volvería a pedir un teléfono que
   ya se mandó.
 
+## 10. Reconciliación periódica por REST
+
+Además de Kafka, turnos consulta cada minuto el listado de reservas de la cátedra para los
+procesos abiertos que ya vencieron, y aplica su estado real. El detalle está en
+[reservas.md](reservas.md).
+
+- Motivo: Kafka es la vía principal, pero un evento perdido dejaría un proceso abierto para
+  siempre. La referencia pide reconciliar por REST con los ids guardados (sección 18.4), y el
+  enunciado pide recuperar procesos pendientes al reiniciar.
+- Corre al arrancar, así se cierran los procesos que vencieron con el servicio apagado.
+- Espera un minuto después del vencimiento, para no adelantarse a Kafka.
+- Se acota: 50 procesos por pasada, una consulta por usuario y sin reintentos dentro de la
+  misma pasada.
+- Descartado: consultar a la cátedra cada vez que el usuario pide su reserva. Haría depender
+  cada consulta de la cátedra, y el enunciado pide que lo propio se pueda atender aunque un
+  servicio externo no responda.
+
