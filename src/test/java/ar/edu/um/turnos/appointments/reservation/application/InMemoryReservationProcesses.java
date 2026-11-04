@@ -3,8 +3,11 @@ package ar.edu.um.turnos.appointments.reservation.application;
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationNotFoundException;
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationProcess;
 import ar.edu.um.turnos.appointments.reservation.ports.out.ReservationProcessRepository;
+import java.time.Instant;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -30,6 +33,18 @@ class InMemoryReservationProcesses implements ReservationProcessRepository {
     @Override
     public Optional<ReservationProcess> findById(long id) {
         return Optional.ofNullable(saved.get(id)).map(p -> copy(p, id));
+    }
+
+    @Override
+    public List<ReservationProcess> findOpenExpiredBefore(Instant limit, int max) {
+        return saved
+            .values()
+            .stream()
+            .filter(p -> p.status().isOpen() && p.expiresAt() != null && p.expiresAt().isBefore(limit))
+            .sorted(Comparator.comparing(ReservationProcess::expiresAt))
+            .limit(max)
+            .map(p -> copy(p, p.id()))
+            .toList();
     }
 
     @Override

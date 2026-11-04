@@ -1,6 +1,8 @@
 package ar.edu.um.turnos.appointments.reservation.ports.out;
 
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationProcess;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -14,6 +16,12 @@ public interface ReservationProcessRepository {
     ReservationProcess create(ReservationProcess process);
 
     Optional<ReservationProcess> findById(long id);
+
+    /**
+     * Procesos abiertos (HELD, WAITING_FOR_PHONE o PHONE_SUBMITTED) que vencieron antes de
+     * {@code limit}, los más viejos primero.
+     */
+    List<ReservationProcess> findOpenExpiredBefore(Instant limit, int max);
 
     /**
      * Lee el proceso, le aplica el cambio y lo guarda, todo en una transacción y con el registro
