@@ -189,6 +189,38 @@ public class ReservationProcess {
         return true;
     }
 
+    // --- Reconciliación por REST ---
+
+    /**
+     * Aplica el estado que informa la cátedra cuando el resultado no llegó por Kafka. Usa las
+     * mismas transiciones que los eventos, así que tampoco puede reabrir un resultado.
+     */
+    public boolean reconcileWith(CatedraAppointment remote, Instant now) {
+        return switch (remote.status()) {
+            // La cátedra todavía no lo cerró: no hay nada que aplicar
+            case PHONE_PENDING -> false;
+            case CONFIRMED -> confirmed(remote.reservationId(), now);
+            // Se confirmó y se canceló mientras no recibíamos los eventos: se aplican los dos pasos
+            case CANCELLED -> {
+                boolean confirmedNow = confirmed(remote.reservationId(), now);
+                boolean cancelledNow = cancelled(remote.cancellationReason(), now);
+                yield confirmedNow || cancelledNow;
+            }
+            case FAILED -> expired("FAILED", now);
+        };
+    }
+
+    /**
+     * El hold venció y la cátedra no tiene ninguna reserva para este proceso: la confirmación
+     * inicial nunca llegó. Solo aplica a procesos HELD.
+     */
+    public boolean holdExpiredWithoutReservation(Instant now) {
+        if (status != ReservationStatus.HELD) {
+            return false;
+        }
+        return expired("HOLD_EXPIRED", now);
+    }
+
     // --- Acciones del usuario ---
 
     /**

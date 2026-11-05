@@ -126,6 +126,31 @@ sequenceDiagram
 Cada envío lleva un `eventId` nuevo, como pide la cátedra para mandar otro teléfono después
 de un rechazo.
 
+## Reconciliación por REST
+
+Si un resultado no llega por Kafka (un evento perdido, el servicio apagado más tiempo del que
+guarda el topic, la cátedra que no publica), el proceso quedaría abierto para siempre. Para
+evitarlo, `ReconciliationScheduler` corre a los 20 segundos de arrancar y después cada minuto:
+
+1. Busca los procesos abiertos que vencieron hace más de un minuto. El minuto de margen es
+   para no adelantarse a Kafka, que normalmente avisa en segundos.
+2. Hace una consulta por usuario a `GET /api/appointments?externalPatientId=...`. No usa
+   `from`/`to`, porque la cátedra responde 500 con esos filtros.
+3. Aplica lo que dice la cátedra:
+
+| Estado en la cátedra | Qué pasa con el proceso |
+| --- | --- |
+| `CONFIRMED` | `CONFIRMED` |
+| `CANCELLED` | `CONFIRMED` y después `CANCELLED` |
+| `FAILED` | `EXPIRED` (motivo `FAILED`) |
+| `PHONE_PENDING` | Nada: la cátedra todavía no lo cerró |
+| No aparece y el proceso está `HELD` | `EXPIRED` (motivo `HOLD_EXPIRED`): la confirmación inicial nunca llegó |
+
+Usa las mismas reglas del dominio que los eventos, así que no reabre resultados. Si el evento
+llega mientras tanto, el bloqueo de fila hace que uno espere al otro y el segundo no cambia
+nada. Si la cátedra no responde, esos procesos se revisan en la pasada siguiente. Cada pasada
+revisa como máximo 50 procesos.
+
 ## Endpoints
 
 | Método | Ruta | Qué hace |
@@ -151,22 +176,22 @@ Con Romina Acosta (id local 1068, id de la cátedra 218), martes 3/11 a las 13:0
   cátedra rechaza el segundo hold, pero el usuario se entera recién al intentar reservarlo.
   Se consultó a la cátedra si es el comportamiento esperado.
 
-## Prueba de Kafka contra la cátedra (3/11)
+## Prueba de Kafka contra la cátedra (3/11 y 4/11)
 
-- Turnos se suscribió a `alumnos.turnos.acciones.turnos-facundo-mangione`. Como el
-  consumer group era nuevo, empezó a leer la partición 0 desde el offset 0.
-- No llegó ningún evento. Las reservas de prueba (Romina Acosta, 10/11, 13:00 y 13:30)
-  quedaron en `WAITING_FOR_PHONE` sin `phoneRequested`, y mandar el teléfono dio 409
-  `INVALID_RESERVATION_STATE`, como corresponde.
-- En `GET /api/appointments` de la cátedra, esas reservas y la del 2/11 figuran como
-  `FAILED`. O sea que la cátedra las procesó y las venció, pero no publicó ni el pedido de
-  teléfono ni el vencimiento en nuestro topic. Se consultó al profesor.
-- `GET /api/appointments` con `from`/`to` responde 500 "Failure during data access". Sin
-  filtros, o con `status` o `externalPatientId`, responde bien.
-- El filtro por `externalPatientId` permite saber el estado real de nuestros procesos por
-  REST. Se va a usar para reconciliar los procesos abiertos cuando no lleguen los eventos.
+- **3/11:** turnos se suscribió a `alumnos.turnos.acciones.turnos-facundo-mangione`, pero no
+  llegó ningún evento. Con un cliente independiente se comprobó que los 18 topics de acciones
+  y los 18 de catálogo de todos los alumnos estaban vacíos, aunque la cátedra tenía las
+  reservas en `PHONE_PENDING` y después en `FAILED`. Se le avisó al profesor.
+- **4/11:** la cátedra publicó los eventos pendientes. Al levantar turnos, las cuatro reservas
+  de prueba pasaron solas a `EXPIRED` con `HOLD_EXPIRED`.
+- **Flujo completo (reserva 1201, Romina Acosta, 10/11, 14:30):** pedido de teléfono →
+  `PHONE_SUBMITTED` → `CONFIRMED` en unos 4 segundos. Después, las 14:30 dejaron de aparecer
+  en la disponibilidad.
+- **Eventos repetidos:** se levantó turnos con un consumer group nuevo, que leyó el topic
+  desde el principio. Los 10 eventos se reconocieron como ya aplicados y no cambió nada.
+- `GET /api/appointments` con `from`/`to` sigue respondiendo 500. Sin esos filtros, o con
+  `externalPatientId`, responde bien.
 
 ## Pendiente
 
 - Listado de reservas propias y cancelación.
-- Reconciliar por REST los procesos abiertos que vencieron sin recibir su resultado por Kafka.

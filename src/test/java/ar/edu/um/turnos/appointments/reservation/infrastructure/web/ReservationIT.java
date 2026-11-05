@@ -19,10 +19,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import ar.edu.um.turnos.appointments.IntegrationTest;
 import ar.edu.um.turnos.appointments.reservation.application.CatedraEvent;
 import ar.edu.um.turnos.appointments.reservation.application.CatedraEventService;
+import ar.edu.um.turnos.appointments.reservation.application.ReconciliationService;
+import ar.edu.um.turnos.appointments.reservation.domain.CatedraAppointment;
 import ar.edu.um.turnos.appointments.reservation.domain.CatedraRejectedException;
 import ar.edu.um.turnos.appointments.reservation.domain.CatedraUnavailableException;
 import ar.edu.um.turnos.appointments.reservation.domain.Occupancy;
 import ar.edu.um.turnos.appointments.reservation.domain.ProfessionalAgenda;
+import ar.edu.um.turnos.appointments.reservation.ports.out.CatedraAppointments;
 import ar.edu.um.turnos.appointments.reservation.ports.out.CatedraReservations;
 import ar.edu.um.turnos.appointments.reservation.ports.out.OccupancySource;
 import ar.edu.um.turnos.appointments.reservation.ports.out.PhoneSubmissionPublisher;
@@ -84,6 +87,13 @@ class ReservationIT {
 
     @MockitoBean
     private PhoneSubmissionPublisher phonePublisher;
+
+    @MockitoBean
+    private CatedraAppointments catedraAppointments;
+
+    // La reconciliación tampoco corre sola en los tests: se llama directo
+    @Autowired
+    private ReconciliationService reconciliation;
 
     // El listener de Kafka está apagado en los tests: los eventos se aplican llamando a este servicio
     @Autowired
@@ -279,6 +289,39 @@ class ReservationIT {
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("INVALID_PHONE_NUMBER"));
         verify(phonePublisher, never()).publish(any());
+    }
+
+    @Test
+    void laReconciliacionCierraUnProcesoVencidoSinEventos() throws Exception {
+        // Un proceso que venció hace 10 minutos y nunca recibió su resultado por Kafka
+        Instant vencio = Instant.now().minus(10, ChronoUnit.MINUTES);
+        when(catedra.createHold(anyLong(), any(), any(), anyString())).thenReturn(
+            new CatedraReservations.Hold("hold-1", "process-1", vencio)
+        );
+        when(catedra.confirmHold(eq("hold-1"), any())).thenReturn(vencio);
+        Number id = reservar(ANA, "09:30");
+        when(catedraAppointments.appointmentsOf("user-1")).thenReturn(
+            List.of(new CatedraAppointment("process-1", CatedraAppointment.Status.FAILED, 8251L, null))
+        );
+
+        ReconciliationService.Result resultado = reconciliation.reconcile();
+        enLaBase();
+
+        assertThat(resultado.changed()).isEqualTo(1);
+        mockMvc
+            .perform(get(URL + "/" + id).with(usuario(ANA)))
+            .andExpect(jsonPath("$.status").value("EXPIRED"))
+            .andExpect(jsonPath("$.statusReason").value("FAILED"));
+    }
+
+    @Test
+    void laReconciliacionNoTocaLosProcesosVigentes() throws Exception {
+        holdYConfirmacionOk();
+        Number id = reservar(ANA, "09:30");
+
+        assertThat(reconciliation.reconcile().checked()).isEqualTo(0);
+        verify(catedraAppointments, never()).appointmentsOf(anyString());
+        mockMvc.perform(get(URL + "/" + id).with(usuario(ANA))).andExpect(jsonPath("$.status").value("WAITING_FOR_PHONE"));
     }
 
     @Test

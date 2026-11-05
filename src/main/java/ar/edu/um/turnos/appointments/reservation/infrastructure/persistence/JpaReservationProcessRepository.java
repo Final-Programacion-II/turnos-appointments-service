@@ -4,10 +4,14 @@ import ar.edu.um.turnos.appointments.reservation.domain.Appointment;
 import ar.edu.um.turnos.appointments.reservation.domain.Patient;
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationNotFoundException;
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationProcess;
+import ar.edu.um.turnos.appointments.reservation.domain.ReservationStatus;
 import ar.edu.um.turnos.appointments.reservation.ports.out.ReservationProcessRepository;
 import java.time.Instant;
+import java.util.EnumSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,6 +55,22 @@ public class JpaReservationProcessRepository implements ReservationProcessReposi
     @Transactional(readOnly = true)
     public Optional<ReservationProcess> findById(long id) {
         return jpa.findById(id).map(JpaReservationProcessRepository::toDomain);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReservationProcess> findOpenExpiredBefore(Instant limit, int max) {
+        EnumSet<ReservationStatus> open = EnumSet.noneOf(ReservationStatus.class);
+        for (ReservationStatus status : ReservationStatus.values()) {
+            if (status.isOpen()) {
+                open.add(status);
+            }
+        }
+        return jpa
+            .findByStatusInAndExpiresAtBeforeOrderByExpiresAtAsc(open, limit, PageRequest.of(0, max))
+            .stream()
+            .map(JpaReservationProcessRepository::toDomain)
+            .toList();
     }
 
     @Override

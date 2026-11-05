@@ -97,3 +97,8 @@ management:
 catedra:
   kafka:
     enabled: false
+
+# La reconciliación tampoco corre sola en los tests: los ITs la llaman directo
+reservation:
+  reconciliation:
+    enabled: false

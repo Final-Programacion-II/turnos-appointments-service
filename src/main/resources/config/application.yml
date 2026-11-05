@@ -248,3 +248,8 @@ catedra:
 reservation:
   # Zona de los consultorios: define qué es "hoy" y qué turnos ya pasaron
   zone: America/Argentina/Mendoza
+  reconciliation:
+    # Consulta a la cátedra por REST los procesos que vencieron sin recibir su resultado por Kafka
+    enabled: ${RESERVATION_RECONCILIATION_ENABLED:true}
+    initial-delay: 20s
+    interval: 60s

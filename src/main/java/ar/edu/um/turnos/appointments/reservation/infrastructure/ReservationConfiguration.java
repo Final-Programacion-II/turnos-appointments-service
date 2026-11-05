@@ -2,8 +2,10 @@ package ar.edu.um.turnos.appointments.reservation.infrastructure;
 
 import ar.edu.um.turnos.appointments.reservation.application.AvailabilityService;
 import ar.edu.um.turnos.appointments.reservation.application.CatedraEventService;
+import ar.edu.um.turnos.appointments.reservation.application.ReconciliationService;
 import ar.edu.um.turnos.appointments.reservation.application.ReservationService;
 import ar.edu.um.turnos.appointments.reservation.infrastructure.catedra.CatedraProperties;
+import ar.edu.um.turnos.appointments.reservation.ports.out.CatedraAppointments;
 import ar.edu.um.turnos.appointments.reservation.ports.out.CatedraReservations;
 import ar.edu.um.turnos.appointments.reservation.ports.out.OccupancySource;
 import ar.edu.um.turnos.appointments.reservation.ports.out.PhoneSubmissionPublisher;
@@ -51,5 +53,14 @@ public class ReservationConfiguration {
     @Bean
     public CatedraEventService catedraEventService(ReservationProcessRepository processes, Clock reservationClock) {
         return new CatedraEventService(processes, reservationClock);
+    }
+
+    @Bean
+    public ReconciliationService reconciliationService(
+        ReservationProcessRepository processes,
+        CatedraAppointments catedraAppointments,
+        Clock reservationClock
+    ) {
+        return new ReconciliationService(processes, catedraAppointments, reservationClock);
     }
 }
