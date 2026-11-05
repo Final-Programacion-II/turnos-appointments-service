@@ -153,5 +153,10 @@ class ReconciliationServiceTest {
             }
             return respuestas.getOrDefault(externalPatientId, List.of());
         }
+
+        @Override
+        public void cancel(String reservationProcessId, String reason) {
+            throw new UnsupportedOperationException("La reconciliación no cancela reservas");
+        }
     }
 }

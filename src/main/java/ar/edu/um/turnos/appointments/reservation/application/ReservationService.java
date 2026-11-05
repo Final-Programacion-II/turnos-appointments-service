@@ -11,6 +11,7 @@ import ar.edu.um.turnos.appointments.reservation.domain.ReservationNotFoundExcep
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationProcess;
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationStatus;
 import ar.edu.um.turnos.appointments.reservation.domain.SlotNotAvailableException;
+import ar.edu.um.turnos.appointments.reservation.ports.out.CatedraAppointments;
 import ar.edu.um.turnos.appointments.reservation.ports.out.CatedraReservations;
 import ar.edu.um.turnos.appointments.reservation.ports.out.PhoneSubmissionPublisher;
 import ar.edu.um.turnos.appointments.reservation.ports.out.ReservationProcessRepository;
@@ -18,11 +19,13 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Set;
 import java.util.UUID;
 
 /**
  * Acciones del usuario sobre sus reservas: empezarla (hold + confirmación inicial), reintentar
- * la confirmación y mandar el teléfono. Los resultados llegan por Kafka (CatedraEventService).
+ * la confirmación, mandar el teléfono, listarlas y cancelarlas. Los resultados llegan por Kafka
+ * (CatedraEventService) o por la reconciliación (ReconciliationService).
  *
  * Las llamadas a la cátedra se hacen fuera de cualquier transacción de la base: una llamada
  * lenta no deja registros bloqueados.
@@ -33,6 +36,7 @@ public class ReservationService {
     private final CatedraReservations catedra;
     private final ReservationProcessRepository processes;
     private final PhoneSubmissionPublisher phonePublisher;
+    private final CatedraAppointments catedraAppointments;
     private final Clock clock;
 
     public ReservationService(
@@ -40,12 +44,14 @@ public class ReservationService {
         CatedraReservations catedra,
         ReservationProcessRepository processes,
         PhoneSubmissionPublisher phonePublisher,
+        CatedraAppointments catedraAppointments,
         Clock clock
     ) {
         this.availability = availability;
         this.catedra = catedra;
         this.processes = processes;
         this.phonePublisher = phonePublisher;
+        this.catedraAppointments = catedraAppointments;
         this.clock = clock;
     }
 
@@ -124,6 +130,30 @@ public class ReservationService {
             )
         );
         return processes.update(id, p -> p.phoneSubmitted(phone.value(), now()));
+    }
+
+    /**
+     * Las reservas del usuario, leídas solo de la base de turnos: el listado funciona aunque el
+     * catálogo o la cátedra no respondan.
+     */
+    public ReservationProcessRepository.ReservationPage list(long ownerId, Set<ReservationStatus> statuses, int page, int size) {
+        return processes.findByOwner(ownerId, statuses, page, size);
+    }
+
+    /**
+     * Cancela una reserva confirmada propia. Primero se cancela en la cátedra y, si salió, acá.
+     * Si la cátedra no responde, la reserva sigue confirmada y se puede volver a intentar: en la
+     * cátedra cancelar es idempotente. El AppointmentCancelled que llega después por Kafka ya no
+     * cambia nada.
+     */
+    public ReservationProcess cancel(long ownerId, long id, String reason) {
+        ReservationProcess process = get(ownerId, id);
+        process.ensureCanBeCancelled();
+        if (process.status() == ReservationStatus.CANCELLED) {
+            return process;
+        }
+        catedraAppointments.cancel(process.reservationProcessId(), reason);
+        return processes.update(id, p -> p.cancelled(reason, now()));
     }
 
     /**

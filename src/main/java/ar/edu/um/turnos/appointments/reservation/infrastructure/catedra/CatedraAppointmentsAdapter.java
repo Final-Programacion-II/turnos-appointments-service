@@ -10,11 +10,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 /**
- * Listado de reservas de la cuenta técnica (sección 11 de la referencia), filtrado por paciente.
+ * Listado de reservas de la cuenta técnica (sección 11 de la referencia), filtrado por paciente,
+ * y cancelación (sección 12).
  *
  * No se usan los filtros from/to: la cátedra responde 500 cuando se mandan (probado el 3/11).
  * La respuesta viene paginada: se piden páginas hasta que una venga incompleta, con un tope
@@ -57,6 +59,20 @@ public class CatedraAppointmentsAdapter implements CatedraAppointments {
         return all;
     }
 
+    @Override
+    public void cancel(String reservationProcessId, String reason) {
+        CatedraHttp.call(properties, "cancelar la reserva", () ->
+            restClient
+                .post()
+                .uri("/api/appointments/{processId}/cancel", reservationProcessId)
+                .header(HttpHeaders.AUTHORIZATION, properties.authorization())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new CancelRequest(reason))
+                .retrieve()
+                .body(CancelResponse.class)
+        );
+    }
+
     /**
      * Un estado que no conocemos se descarta: mejor no tocar el proceso que adivinar.
      */
@@ -75,4 +91,9 @@ public class CatedraAppointmentsAdapter implements CatedraAppointments {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     record AppointmentJson(String reservationProcessId, String status, Long reservationId, String cancellationReason) {}
+
+    record CancelRequest(String reason) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record CancelResponse(String reservationProcessId, String status) {}
 }

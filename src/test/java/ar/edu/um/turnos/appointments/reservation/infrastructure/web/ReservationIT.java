@@ -1,6 +1,7 @@
 package ar.edu.um.turnos.appointments.reservation.infrastructure.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -322,6 +323,66 @@ class ReservationIT {
         assertThat(reconciliation.reconcile().checked()).isEqualTo(0);
         verify(catedraAppointments, never()).appointmentsOf(anyString());
         mockMvc.perform(get(URL + "/" + id).with(usuario(ANA))).andExpect(jsonPath("$.status").value("WAITING_FOR_PHONE"));
+    }
+
+    @Test
+    void elListadoTraeSoloLasReservasPropias() throws Exception {
+        holdYConfirmacionOk();
+        when(catedra.createHold(eq(15L), eq(PROXIMO_LUNES), eq(LocalTime.of(10, 0)), anyString())).thenReturn(
+            new CatedraReservations.Hold("hold-2", "process-2", VENCE)
+        );
+        when(catedra.confirmHold(eq("hold-2"), any())).thenReturn(VENCE);
+        reservar(ANA, "09:30");
+        reservar(BRUNO, "10:00");
+        enLaBase();
+
+        mockMvc
+            .perform(get(URL).with(usuario(ANA)))
+            .andExpect(status().isOk())
+            .andExpect(header().string("X-Total-Count", "1"))
+            .andExpect(jsonPath("$[*].startTime").value(contains("09:30:00")));
+
+        mockMvc.perform(get(URL).param("status", "CONFIRMED").with(usuario(ANA))).andExpect(header().string("X-Total-Count", "0"));
+    }
+
+    @Test
+    void cancelaUnaReservaConfirmadaPropia() throws Exception {
+        holdYConfirmacionOk();
+        Number id = reservar(ANA, "09:30");
+        catedraEvents.handle(evento("confirmation-1", CatedraEvent.Type.CONFIRMED));
+
+        // Otro usuario no puede
+        mockMvc.perform(post(URL + "/" + id + "/cancel").with(usuario(BRUNO))).andExpect(status().isNotFound());
+        verify(catedraAppointments, never()).cancel(anyString(), any());
+
+        mockMvc
+            .perform(
+                post(URL + "/" + id + "/cancel")
+                    .with(usuario(ANA))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{ \"reason\": \"No puedo ir\" }")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("CANCELLED"))
+            .andExpect(jsonPath("$.statusReason").value("No puedo ir"));
+        verify(catedraAppointments).cancel("process-1", "No puedo ir");
+
+        // El AppointmentCancelled que llega después por Kafka no cambia nada
+        catedraEvents.handle(evento("cancellation-1", CatedraEvent.Type.CANCELLED));
+        enLaBase();
+        mockMvc.perform(get(URL + "/" + id).with(usuario(ANA))).andExpect(jsonPath("$.statusReason").value("No puedo ir"));
+    }
+
+    @Test
+    void unaReservaSinConfirmarNoSeCancela() throws Exception {
+        holdYConfirmacionOk();
+        Number id = reservar(ANA, "09:30");
+
+        mockMvc
+            .perform(post(URL + "/" + id + "/cancel").with(usuario(ANA)))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value("INVALID_RESERVATION_STATE"));
+        verify(catedraAppointments, never()).cancel(anyString(), any());
     }
 
     @Test

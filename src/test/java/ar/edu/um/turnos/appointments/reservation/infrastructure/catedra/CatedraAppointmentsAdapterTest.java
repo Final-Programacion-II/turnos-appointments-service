@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import ar.edu.um.turnos.appointments.reservation.domain.CatedraAppointment;
+import ar.edu.um.turnos.appointments.reservation.domain.CatedraRejectedException;
 import ar.edu.um.turnos.appointments.reservation.domain.CatedraUnavailableException;
 import com.sun.net.httpserver.HttpServer;
 import java.io.OutputStream;
@@ -22,6 +23,9 @@ class CatedraAppointmentsAdapterTest {
     private HttpServer server;
     private final List<String> queries = new ArrayList<>();
     private String authorizationRecibido;
+    private String metodoRecibido;
+    private String pathRecibido;
+    private String bodyRecibido;
 
     @AfterEach
     void apagar() {
@@ -73,6 +77,27 @@ class CatedraAppointmentsAdapterTest {
         assertThatThrownBy(() -> adapter().appointmentsOf("user-42")).isInstanceOf(CatedraUnavailableException.class);
     }
 
+    @Test
+    void cancelaUnaReserva() throws Exception {
+        catedraQueResponde(200, List.of("{ \"reservationId\": 8251, \"reservationProcessId\": \"process-1\", \"status\": \"CANCELLED\" }"));
+
+        adapter().cancel("process-1", "Cambio solicitado por el usuario");
+
+        assertThat(metodoRecibido).isEqualTo("POST");
+        assertThat(pathRecibido).isEqualTo("/api/appointments/process-1/cancel");
+        assertThat(bodyRecibido).contains("\"reason\":\"Cambio solicitado por el usuario\"");
+        assertThat(authorizationRecibido).isEqualTo("Bearer token-tecnico");
+    }
+
+    @Test
+    void unaReservaQueNoSePuedeCancelarTraeElCode() throws Exception {
+        catedraQueResponde(409, List.of("{ \"status\": 409, \"code\": \"RESERVATION_NOT_CANCELLABLE\" }"));
+
+        assertThatThrownBy(() -> adapter().cancel("process-1", null)).isInstanceOfSatisfying(CatedraRejectedException.class, e ->
+            assertThat(e.code()).isEqualTo("RESERVATION_NOT_CANCELLABLE")
+        );
+    }
+
     private static String pagina(int desde, int cantidad) {
         return IntStream.range(desde, desde + cantidad)
             .mapToObj(i -> "{\"reservationProcessId\":\"process-" + i + "\",\"status\":\"FAILED\"}")
@@ -86,6 +111,9 @@ class CatedraAppointmentsAdapterTest {
         server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
         server.createContext("/api/appointments", exchange -> {
             authorizationRecibido = exchange.getRequestHeaders().getFirst("Authorization");
+            metodoRecibido = exchange.getRequestMethod();
+            pathRecibido = exchange.getRequestURI().getPath();
+            bodyRecibido = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
             queries.add(exchange.getRequestURI().getQuery());
             String json = respuestas.get(Math.min(queries.size() - 1, respuestas.size() - 1));
             byte[] body = json.getBytes(StandardCharsets.UTF_8);

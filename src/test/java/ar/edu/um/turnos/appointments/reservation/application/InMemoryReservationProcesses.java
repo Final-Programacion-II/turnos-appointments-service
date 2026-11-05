@@ -2,6 +2,7 @@ package ar.edu.um.turnos.appointments.reservation.application;
 
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationNotFoundException;
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationProcess;
+import ar.edu.um.turnos.appointments.reservation.domain.ReservationStatus;
 import ar.edu.um.turnos.appointments.reservation.ports.out.ReservationProcessRepository;
 import java.time.Instant;
 import java.util.Comparator;
@@ -33,6 +34,27 @@ class InMemoryReservationProcesses implements ReservationProcessRepository {
     @Override
     public Optional<ReservationProcess> findById(long id) {
         return Optional.ofNullable(saved.get(id)).map(p -> copy(p, id));
+    }
+
+    @Override
+    public ReservationPage findByOwner(long ownerId, Set<ReservationStatus> statuses, int page, int size) {
+        List<ReservationProcess> all = saved
+            .values()
+            .stream()
+            .filter(p -> p.ownerId() == ownerId && (statuses.isEmpty() || statuses.contains(p.status())))
+            .sorted(
+                Comparator.comparing((ReservationProcess p) -> p.appointment().date())
+                    .thenComparing(p -> p.appointment().startTime())
+                    .reversed()
+            )
+            .map(p -> copy(p, p.id()))
+            .toList();
+        List<ReservationProcess> pageItems = all
+            .stream()
+            .skip((long) page * size)
+            .limit(size)
+            .toList();
+        return new ReservationPage(pageItems, all.size());
     }
 
     @Override

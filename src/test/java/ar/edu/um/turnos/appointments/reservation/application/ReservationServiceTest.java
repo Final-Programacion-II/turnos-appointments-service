@@ -3,6 +3,7 @@ package ar.edu.um.turnos.appointments.reservation.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import ar.edu.um.turnos.appointments.reservation.domain.CatedraAppointment;
 import ar.edu.um.turnos.appointments.reservation.domain.CatedraRejectedException;
 import ar.edu.um.turnos.appointments.reservation.domain.CatedraUnavailableException;
 import ar.edu.um.turnos.appointments.reservation.domain.InvalidPhoneNumberException;
@@ -14,8 +15,10 @@ import ar.edu.um.turnos.appointments.reservation.domain.ReservationNotFoundExcep
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationProcess;
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationStatus;
 import ar.edu.um.turnos.appointments.reservation.domain.SlotNotAvailableException;
+import ar.edu.um.turnos.appointments.reservation.ports.out.CatedraAppointments;
 import ar.edu.um.turnos.appointments.reservation.ports.out.CatedraReservations;
 import ar.edu.um.turnos.appointments.reservation.ports.out.PhoneSubmissionPublisher;
+import ar.edu.um.turnos.appointments.reservation.ports.out.ReservationProcessRepository;
 import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.Instant;
@@ -24,6 +27,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -43,6 +47,8 @@ class ReservationServiceTest {
     private List<Occupancy> ocupaciones;
     private List<PhoneSubmissionPublisher.PhoneSubmission> telefonos;
     private boolean kafkaCaido;
+    private List<String> cancelaciones;
+    private boolean cancelacionCaida;
     private ReservationService service;
 
     @BeforeEach
@@ -50,6 +56,7 @@ class ReservationServiceTest {
         catedra = new CatedraFalsa();
         procesos = new InMemoryReservationProcesses();
         telefonos = new ArrayList<>();
+        cancelaciones = new ArrayList<>();
         ocupaciones = new ArrayList<>();
         AvailabilityService availability = new AvailabilityService(id -> agenda(), (externalId, from, to) -> ocupaciones, RELOJ);
         PhoneSubmissionPublisher publisher = envio -> {
@@ -58,7 +65,21 @@ class ReservationServiceTest {
             }
             telefonos.add(envio);
         };
-        service = new ReservationService(availability, catedra, procesos, publisher, RELOJ);
+        CatedraAppointments appointments = new CatedraAppointments() {
+            @Override
+            public List<CatedraAppointment> appointmentsOf(String externalPatientId) {
+                return List.of();
+            }
+
+            @Override
+            public void cancel(String reservationProcessId, String reason) {
+                if (cancelacionCaida) {
+                    throw new CatedraUnavailableException("timeout", null);
+                }
+                cancelaciones.add(reservationProcessId + " " + reason);
+            }
+        };
+        service = new ReservationService(availability, catedra, procesos, publisher, appointments, RELOJ);
     }
 
     @Test
@@ -213,6 +234,77 @@ class ReservationServiceTest {
 
         assertThatThrownBy(() -> service.submitPhone(8, proceso.id(), "+5492615551234")).isInstanceOf(ReservationNotFoundException.class);
         assertThat(telefonos).isEmpty();
+    }
+
+    @Test
+    void cancelaUnaReservaConfirmada() {
+        ReservationProcess proceso = confirmada(LocalTime.of(9, 30));
+
+        ReservationProcess cancelada = service.cancel(USUARIO, proceso.id(), "No puedo ir");
+
+        assertThat(cancelada.status()).isEqualTo(ReservationStatus.CANCELLED);
+        assertThat(cancelada.statusReason()).isEqualTo("No puedo ir");
+        assertThat(cancelaciones).containsExactly("process-1 No puedo ir");
+    }
+
+    @Test
+    void cancelarDosVecesEsComoCancelarUna() {
+        ReservationProcess proceso = confirmada(LocalTime.of(9, 30));
+        service.cancel(USUARIO, proceso.id(), null);
+
+        assertThat(service.cancel(USUARIO, proceso.id(), null).status()).isEqualTo(ReservationStatus.CANCELLED);
+        assertThat(cancelaciones).hasSize(1);
+    }
+
+    @Test
+    void unaReservaSinConfirmarNoSeCancela() {
+        ReservationProcess proceso = esperandoTelefono();
+
+        assertThatThrownBy(() -> service.cancel(USUARIO, proceso.id(), null)).isInstanceOf(InvalidReservationStateException.class);
+        assertThat(cancelaciones).isEmpty();
+    }
+
+    @Test
+    void siLaCatedraNoRespondeSigueConfirmada() {
+        ReservationProcess proceso = confirmada(LocalTime.of(9, 30));
+        cancelacionCaida = true;
+
+        assertThatThrownBy(() -> service.cancel(USUARIO, proceso.id(), null)).isInstanceOf(CatedraUnavailableException.class);
+        assertThat(procesos.find(proceso.id()).status()).isEqualTo(ReservationStatus.CONFIRMED);
+    }
+
+    @Test
+    void nadieCancelaUnaReservaAjena() {
+        ReservationProcess proceso = confirmada(LocalTime.of(9, 30));
+
+        assertThatThrownBy(() -> service.cancel(8, proceso.id(), null)).isInstanceOf(ReservationNotFoundException.class);
+        assertThat(cancelaciones).isEmpty();
+    }
+
+    @Test
+    void elListadoTraeSoloLasReservasPropias() {
+        ReservationProcess temprano = confirmada(LocalTime.of(9, 0));
+        ReservationProcess tarde = service.start(USUARIO, pedido(LocalTime.of(10, 30)));
+        service.start(8, pedido(LocalTime.of(10, 0)));
+
+        ReservationProcessRepository.ReservationPage todas = service.list(USUARIO, Set.of(), 0, 20);
+        assertThat(todas.total()).isEqualTo(2);
+        // Primero el turno más lejano
+        assertThat(todas.items().get(0).id()).isEqualTo(tarde.id());
+        assertThat(todas.items().get(1).id()).isEqualTo(temprano.id());
+
+        ReservationProcessRepository.ReservationPage confirmadas = service.list(USUARIO, Set.of(ReservationStatus.CONFIRMED), 0, 20);
+        assertThat(confirmadas.total()).isEqualTo(1);
+        assertThat(confirmadas.items().get(0).id()).isEqualTo(temprano.id());
+    }
+
+    /**
+     * Una reserva confirmada (como si hubiera llegado el AppointmentConfirmed).
+     */
+    private ReservationProcess confirmada(LocalTime hora) {
+        ReservationProcess proceso = service.start(USUARIO, pedido(hora));
+        procesos.update(proceso.id(), p -> p.confirmed(8251L, RELOJ.instant()));
+        return proceso;
     }
 
     /**
