@@ -151,14 +151,35 @@ llega mientras tanto, el bloqueo de fila hace que uno espere al otro y el segund
 nada. Si la cátedra no responde, esos procesos se revisan en la pasada siguiente. Cada pasada
 revisa como máximo 50 procesos.
 
+## Mis reservas y cancelación
+
+**Listado** (`GET /api/reservations`): se lee solo de la base de turnos, sin llamar al
+catálogo ni a la cátedra. Así funciona aunque alguno de los dos no responda (sección 8 del
+enunciado). Viene del turno más lejano al más cercano, se puede filtrar por uno o más
+`status` y se pagina con `page` y `size` (máximo 100). El total va en el header
+`X-Total-Count`.
+
+**Cancelación** (`POST /api/reservations/{id}/cancel`, con `reason` opcional, de hasta 500
+caracteres):
+
+1. Solo el dueño, y solo si la reserva está `CONFIRMED`. Si no, 409
+   `INVALID_RESERVATION_STATE`. Si ya está `CANCELLED`, se devuelve como está.
+2. Se cancela primero en la cátedra (`POST /api/appointments/{reservationProcessId}/cancel`) y,
+   si salió, acá. Si la cátedra no responde, la reserva sigue confirmada y se puede volver a
+   intentar sin riesgo, porque en la cátedra cancelar es idempotente.
+3. El `AppointmentCancelled` que llega después por Kafka no cambia nada: la reserva ya está
+   cancelada.
+
 ## Endpoints
 
 | Método | Ruta | Qué hace |
 | --- | --- | --- |
+| GET | `/api/reservations` | Reservas propias, paginadas y filtrables por `status` |
 | POST | `/api/reservations` | Empieza una reserva (hold + confirmación inicial) |
 | GET | `/api/reservations/{id}` | Estado de una reserva propia |
 | POST | `/api/reservations/{id}/confirm` | Reintenta la confirmación inicial si quedó `HELD` |
 | POST | `/api/reservations/{id}/phone` | Manda el teléfono que pidió la cátedra |
+| POST | `/api/reservations/{id}/cancel` | Cancela una reserva confirmada propia |
 
 En la respuesta, `phoneRequested: true` indica que la app tiene que pedir el teléfono.
 
@@ -191,7 +212,3 @@ Con Romina Acosta (id local 1068, id de la cátedra 218), martes 3/11 a las 13:0
   desde el principio. Los 10 eventos se reconocieron como ya aplicados y no cambió nada.
 - `GET /api/appointments` con `from`/`to` sigue respondiendo 500. Sin esos filtros, o con
   `externalPatientId`, responde bien.
-
-## Pendiente
-
-- Listado de reservas propias y cancelación.

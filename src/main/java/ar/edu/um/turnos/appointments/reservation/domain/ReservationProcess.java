@@ -250,6 +250,16 @@ public class ReservationProcess {
         return true;
     }
 
+    /**
+     * Solo se cancela una reserva confirmada. Si ya está cancelada no es un error: cancelar dos
+     * veces es lo mismo que una.
+     */
+    public void ensureCanBeCancelled() {
+        if (status != ReservationStatus.CONFIRMED && status != ReservationStatus.CANCELLED) {
+            throw new InvalidReservationStateException("Solo se puede cancelar una reserva confirmada (estado actual: " + status + ")");
+        }
+    }
+
     public boolean belongsTo(long userId) {
         return ownerId == userId;
     }

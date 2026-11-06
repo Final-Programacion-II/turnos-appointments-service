@@ -10,8 +10,11 @@ import java.time.Instant;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +58,17 @@ public class JpaReservationProcessRepository implements ReservationProcessReposi
     @Transactional(readOnly = true)
     public Optional<ReservationProcess> findById(long id) {
         return jpa.findById(id).map(JpaReservationProcessRepository::toDomain);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ReservationPage findByOwner(long ownerId, Set<ReservationStatus> statuses, int page, int size) {
+        // Igual que el listado de la cátedra: primero el turno más lejano
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("appointmentDate"), Sort.Order.desc("startTime")));
+        Page<ReservationProcessEntity> result = statuses.isEmpty()
+            ? jpa.findByOwnerId(ownerId, pageable)
+            : jpa.findByOwnerIdAndStatusIn(ownerId, statuses, pageable);
+        return new ReservationPage(result.stream().map(JpaReservationProcessRepository::toDomain).toList(), result.getTotalElements());
     }
 
     @Override

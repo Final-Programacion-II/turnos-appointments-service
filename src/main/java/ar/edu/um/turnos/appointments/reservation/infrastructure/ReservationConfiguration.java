@@ -45,9 +45,10 @@ public class ReservationConfiguration {
         CatedraReservations catedra,
         ReservationProcessRepository processes,
         PhoneSubmissionPublisher phonePublisher,
+        CatedraAppointments catedraAppointments,
         Clock reservationClock
     ) {
-        return new ReservationService(availabilityService, catedra, processes, phonePublisher, reservationClock);
+        return new ReservationService(availabilityService, catedra, processes, phonePublisher, catedraAppointments, reservationClock);
     }
 
     @Bean

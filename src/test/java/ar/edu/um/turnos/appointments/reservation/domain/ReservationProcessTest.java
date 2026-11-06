@@ -205,6 +205,18 @@ class ReservationProcessTest {
         assertThat(confirmado.status()).isEqualTo(ReservationStatus.WAITING_FOR_PHONE);
     }
 
+    @Test
+    void soloSeCancelaUnaConfirmadaOYaCancelada() {
+        assertThatThrownBy(() -> esperandoTelefono().ensureCanBeCancelled()).isInstanceOf(InvalidReservationStateException.class);
+
+        ReservationProcess confirmada = esperandoTelefono();
+        confirmada.confirmed(8251L, AHORA);
+        confirmada.ensureCanBeCancelled();
+        confirmada.cancelled(null, AHORA);
+        // Ya cancelada: no es un error
+        confirmada.ensureCanBeCancelled();
+    }
+
     private static CatedraAppointment remota(CatedraAppointment.Status estado) {
         String motivo = estado == CatedraAppointment.Status.CANCELLED ? "Cambio solicitado por el usuario" : null;
         return new CatedraAppointment("process-1", estado, 8251L, motivo);
