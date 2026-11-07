@@ -114,6 +114,22 @@ base. No incluye a la cátedra a propósito: si Redis o Kafka no responden un ra
 sigue levantado, informa el problema (`GET /api/catalog/sync-status` en el catálogo, 503 en
 turnos) y se recupera solo cuando vuelve.
 
+## Problemas conocidos
+
+**`cannot stop container: permission denied`** al recrear un contenedor (por ejemplo, con
+`up -d --force-recreate` después de reconstruir una imagen). Pasa con Docker instalado como
+snap en Ubuntu: AppArmor no le deja al motor de Docker mandarle la señal de parada al
+contenedor. Se resuelve parando el proceso como administrador y volviendo a levantar:
+
+```bash
+PID=$(docker inspect -f '{{.State.Pid}}' turnos-sistema-appointments-1)
+sudo kill $PID
+docker compose -f docker/compose.yml up -d appointments
+```
+
+Es la misma señal que manda `docker stop`, así que el servicio se apaga ordenadamente. Si el
+contenedor queda en `Created`, el `up -d` lo arranca.
+
 ## Prueba (6/11)
 
 - Los cuatro contenedores quedaron `healthy` en menos de un minuto.
