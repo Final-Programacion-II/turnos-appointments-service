@@ -142,3 +142,22 @@ procesos abiertos que ya vencieron, y aplica su estado real. El detalle está en
   cada consulta de la cátedra, y el enunciado pide que lo propio se pueda atender aunque un
   servicio externo no responda.
 
+## 11. Docker Compose del sistema completo
+
+`docker/compose.yml`, en este repo, levanta los dos servicios y sus dos PostgreSQL con las
+imágenes que genera Jib. El detalle está en [docker.md](docker.md).
+
+- Motivo: el enunciado pide levantar los dos backends y sus bases con Docker Compose. Va en
+  el repo de turnos porque turnos es el que depende del catálogo; el catálogo se puede seguir
+  levantando solo con su propio `src/main/docker/app.yml`.
+- Cada base está en una red interna propia y sin puertos publicados: la separación de datos
+  no depende de la configuración de cada servicio, sino de que no existe la ruta.
+- Las subredes son fijas en `10.42.x`, porque la cátedra está en `172.17.201.1`, dentro del
+  rango que Docker usa por defecto.
+- El healthcheck usa `readiness`, que no incluye a la cátedra. Si se incluyera, una caída de
+  Redis o Kafka haría que turnos no arranque, aunque puede atender todo lo propio.
+- Los secretos van en `docker/.env`, que no se sube al repositorio.
+- No se usa el perfil `secret-samples` de JHipster, que trae un secreto JWT de ejemplo.
+- Descartado: un compose en cada repo que se conecten entre sí. Obliga a crear redes a mano y
+  a levantar todo en un orden fijo.
+
