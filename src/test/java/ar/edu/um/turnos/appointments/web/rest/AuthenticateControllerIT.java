@@ -89,6 +89,28 @@ class AuthenticateControllerIT {
     }
 
     @Test
+    @Transactional
+    void unUsuarioDesactivadoRecibeLoMismoQueUnaContraseniaIncorrecta() throws Exception {
+        // Como los usuarios de ejemplo en producción: la contraseña es correcta, pero está desactivado
+        User user = new User();
+        user.setLogin("user-desactivado");
+        user.setEmail("user-desactivado@example.com");
+        user.setActivated(false);
+        user.setPassword(passwordEncoder.encode("test"));
+        userRepository.saveAndFlush(user);
+
+        LoginVM login = new LoginVM();
+        login.setUsername("user-desactivado");
+        login.setPassword("test");
+        mockMvc
+            .perform(post("/api/authenticate").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(login)))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.detail").value("Bad credentials"))
+            .andExpect(jsonPath("$.id_token").doesNotExist())
+            .andExpect(header().doesNotExist("Authorization"));
+    }
+
+    @Test
     void testAuthorizeFails() throws Exception {
         LoginVM login = new LoginVM();
         login.setUsername("wrong-user");
@@ -96,6 +118,7 @@ class AuthenticateControllerIT {
         mockMvc
             .perform(post("/api/authenticate").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(login)))
             .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.detail").value("Bad credentials"))
             .andExpect(jsonPath("$.id_token").doesNotExist())
             .andExpect(header().doesNotExist("Authorization"));
     }

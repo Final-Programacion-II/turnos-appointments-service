@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        JHipster carga dos usuarios de ejemplo en todas las bases: admin/admin y user/user.
+        Las contraseñas son públicas (están en el código de JHipster), así que en producción
+        (el perfil prod, el que usa Docker) se desactivan: no pueden iniciar sesión.
+
+        Se desactivan en lugar de borrarlos porque otras tablas los referencian, y desactivar
+        se puede repetir sin problema. En desarrollo y en los tests siguen activos.
+    -->
+    <changeSet id="20261107000000-1" author="facumangione" context="prod">
+        <update tableName="jhi_user">
+            <column name="activated" valueBoolean="false"/>
+            <where>login in ('admin', 'user')</where>
+        </update>
+    </changeSet>
+</databaseChangeLog>

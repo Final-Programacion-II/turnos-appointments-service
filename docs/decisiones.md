@@ -161,3 +161,17 @@ imágenes que genera Jib. El detalle está en [docker.md](docker.md).
 - Descartado: un compose en cada repo que se conecten entre sí. Obliga a crear redes a mano y
   a levantar todo en un orden fijo.
 
+## 12. Seguridad para la entrega
+
+El resumen completo está en [seguridad.md](seguridad.md). Estas son las decisiones nuevas:
+
+- En producción se desactivan los usuarios de ejemplo de JHipster (`admin/admin` y
+  `user/user`) con un changeset que corre solo en el contexto `prod`. Se desactivan en lugar
+  de borrarlos porque otras tablas los referencian.
+- Todo login fallido da 401 con el mismo mensaje. Antes, la respuesta decía si el login no
+  existía o estaba desactivado (este último, además, con un 500).
+- Sin CORS en ningún perfil: el único cliente es la app Android, que no es un navegador.
+- HTTP solo en `127.0.0.1` en el entorno local, con TLS documentado como paso de despliegue.
+- Descartado: cambiarles la contraseña a los usuarios de ejemplo. Habría que poner una
+  contraseña en un changeset, o sea en el repositorio.
+

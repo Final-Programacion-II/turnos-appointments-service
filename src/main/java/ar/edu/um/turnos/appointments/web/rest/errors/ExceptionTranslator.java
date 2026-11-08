@@ -2,6 +2,7 @@ package ar.edu.um.turnos.appointments.web.rest.errors;
 
 import static org.springframework.core.annotation.AnnotatedElementUtils.findMergedAnnotation;
 
+import ar.edu.um.turnos.appointments.security.UserNotActivatedException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import java.net.URI;
@@ -24,7 +25,9 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.SpringSecurityMessageSource;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.ErrorResponseException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -210,6 +213,17 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
     }
 
     private String getCustomizedErrorDetails(Throwable err) {
+        // En un login fallido no se muestra la causa: decía "User x was not found in the database"
+        // o "User x was not activated", y eso deja averiguar qué logins existen. Todos los casos
+        // reciben el mismo mensaje que una contraseña incorrecta (ver docs/seguridad.md).
+        if (err instanceof AuthenticationException) {
+            return isNotActivatedUser(err)
+                ? SpringSecurityMessageSource.getAccessor().getMessage(
+                      "AbstractUserDetailsAuthenticationProvider.badCredentials",
+                      "Bad credentials"
+                  )
+                : err.getMessage();
+        }
         Collection<String> activeProfiles = List.of(env.getActiveProfiles());
         if (activeProfiles.contains(JHipsterConstants.SPRING_PROFILE_PRODUCTION)) {
             if (err instanceof HttpMessageConversionException) return "Unable to convert http message";
@@ -223,9 +237,15 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
         // Where we disagree with Spring defaults
         if (err instanceof AccessDeniedException) return HttpStatus.FORBIDDEN;
         if (err instanceof ConcurrencyFailureException) return HttpStatus.CONFLICT;
-        if (err instanceof BadCredentialsException) return HttpStatus.UNAUTHORIZED;
+        // Cualquier falla de login es un 401, no solo la contraseña incorrecta. Sin esto, un usuario
+        // desactivado (que Spring envuelve en InternalAuthenticationServiceException) daba 500.
+        if (err instanceof AuthenticationException) return HttpStatus.UNAUTHORIZED;
         if (err instanceof ConstraintViolationException) return HttpStatus.BAD_REQUEST;
         return null;
+    }
+
+    private static boolean isNotActivatedUser(Throwable err) {
+        return err instanceof InternalAuthenticationServiceException && err.getCause() instanceof UserNotActivatedException;
     }
 
     private URI getPathValue(NativeWebRequest request) {
