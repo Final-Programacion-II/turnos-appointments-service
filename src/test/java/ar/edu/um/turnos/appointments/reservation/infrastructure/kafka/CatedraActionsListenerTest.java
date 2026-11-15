@@ -8,8 +8,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import ar.edu.um.turnos.appointments.reservation.application.CatedraEvent;
-import ar.edu.um.turnos.appointments.reservation.application.CatedraEventService;
+import ar.edu.um.turnos.appointments.reservation.ports.in.CatedraEvent;
+import ar.edu.um.turnos.appointments.reservation.ports.in.HandleCatedraEventUseCase;
 import ar.edu.um.turnos.appointments.reservation.ports.out.ReservationProcessRepository.EventResult;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,12 +21,12 @@ import org.mockito.ArgumentCaptor;
  */
 class CatedraActionsListenerTest {
 
-    private CatedraEventService events;
+    private HandleCatedraEventUseCase events;
     private CatedraActionsListener listener;
 
     @BeforeEach
     void preparar() {
-        events = mock(CatedraEventService.class);
+        events = mock(HandleCatedraEventUseCase.class);
         when(events.handle(any())).thenReturn(EventResult.APPLIED);
         listener = new CatedraActionsListener(events);
     }

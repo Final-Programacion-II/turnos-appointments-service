@@ -5,6 +5,7 @@ import ar.edu.um.turnos.appointments.reservation.application.CatedraEventService
 import ar.edu.um.turnos.appointments.reservation.application.ReconciliationService;
 import ar.edu.um.turnos.appointments.reservation.application.ReservationService;
 import ar.edu.um.turnos.appointments.reservation.infrastructure.catedra.CatedraProperties;
+import ar.edu.um.turnos.appointments.reservation.ports.in.CheckAvailabilityUseCase;
 import ar.edu.um.turnos.appointments.reservation.ports.out.CatedraAppointments;
 import ar.edu.um.turnos.appointments.reservation.ports.out.CatedraReservations;
 import ar.edu.um.turnos.appointments.reservation.ports.out.OccupancySource;
@@ -41,14 +42,14 @@ public class ReservationConfiguration {
 
     @Bean
     public ReservationService reservationService(
-        AvailabilityService availabilityService,
+        CheckAvailabilityUseCase availability,
         CatedraReservations catedra,
         ReservationProcessRepository processes,
         PhoneSubmissionPublisher phonePublisher,
         CatedraAppointments catedraAppointments,
         Clock reservationClock
     ) {
-        return new ReservationService(availabilityService, catedra, processes, phonePublisher, catedraAppointments, reservationClock);
+        return new ReservationService(availability, catedra, processes, phonePublisher, catedraAppointments, reservationClock);
     }
 
     @Bean

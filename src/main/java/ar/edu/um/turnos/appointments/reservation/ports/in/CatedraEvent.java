@@ -1,4 +1,4 @@
-package ar.edu.um.turnos.appointments.reservation.application;
+package ar.edu.um.turnos.appointments.reservation.ports.in;
 
 import java.time.Instant;
 

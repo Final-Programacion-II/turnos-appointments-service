@@ -11,14 +11,14 @@ import ar.edu.um.turnos.appointments.reservation.domain.ReservationNotFoundExcep
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationProcess;
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationStatus;
 import ar.edu.um.turnos.appointments.reservation.domain.SlotNotAvailableException;
+import ar.edu.um.turnos.appointments.reservation.ports.in.CheckAvailabilityUseCase;
+import ar.edu.um.turnos.appointments.reservation.ports.in.ManageReservationsUseCase;
 import ar.edu.um.turnos.appointments.reservation.ports.out.CatedraAppointments;
 import ar.edu.um.turnos.appointments.reservation.ports.out.CatedraReservations;
 import ar.edu.um.turnos.appointments.reservation.ports.out.PhoneSubmissionPublisher;
 import ar.edu.um.turnos.appointments.reservation.ports.out.ReservationProcessRepository;
 import java.time.Clock;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.Set;
 import java.util.UUID;
 
@@ -30,9 +30,9 @@ import java.util.UUID;
  * Las llamadas a la cátedra se hacen fuera de cualquier transacción de la base: una llamada
  * lenta no deja registros bloqueados.
  */
-public class ReservationService {
+public class ReservationService implements ManageReservationsUseCase {
 
-    private final AvailabilityService availability;
+    private final CheckAvailabilityUseCase availability;
     private final CatedraReservations catedra;
     private final ReservationProcessRepository processes;
     private final PhoneSubmissionPublisher phonePublisher;
@@ -40,7 +40,7 @@ public class ReservationService {
     private final Clock clock;
 
     public ReservationService(
-        AvailabilityService availability,
+        CheckAvailabilityUseCase availability,
         CatedraReservations catedra,
         ReservationProcessRepository processes,
         PhoneSubmissionPublisher phonePublisher,
@@ -60,9 +60,10 @@ public class ReservationService {
      * no se guarda nada. Si el hold sale bien pero la confirmación no llega a la cátedra, el
      * proceso queda HELD y el usuario puede reintentar con {@link #retryConfirmation}.
      */
+    @Override
     public ReservationProcess start(long ownerId, StartReservation request) {
         // Siempre con la agenda vigente del catálogo y las ocupaciones actuales de la cátedra
-        AvailabilityService.Result result = availability.availability(request.professionalId(), request.date());
+        CheckAvailabilityUseCase.Result result = availability.availability(request.professionalId(), request.date());
         AvailableSlot slot = result
             .slots()
             .stream()
@@ -101,6 +102,7 @@ public class ReservationService {
      * Reintenta la confirmación inicial de un proceso que quedó HELD. En cualquier otro estado no
      * hay nada que reintentar y devuelve el proceso como está.
      */
+    @Override
     public ReservationProcess retryConfirmation(long ownerId, long id) {
         ReservationProcess process = get(ownerId, id);
         if (process.status() != ReservationStatus.HELD) {
@@ -114,6 +116,7 @@ public class ReservationService {
      * marca PHONE_SUBMITTED: si Kafka no responde, el proceso sigue esperando el teléfono y el
      * usuario puede volver a intentar.
      */
+    @Override
     public ReservationProcess submitPhone(long ownerId, long id, String rawPhone) {
         ReservationProcess process = get(ownerId, id);
         PhoneNumber phone = PhoneNumber.of(rawPhone);
@@ -136,6 +139,7 @@ public class ReservationService {
      * Las reservas del usuario, leídas solo de la base de turnos: el listado funciona aunque el
      * catálogo o la cátedra no respondan.
      */
+    @Override
     public ReservationProcessRepository.ReservationPage list(long ownerId, Set<ReservationStatus> statuses, int page, int size) {
         return processes.findByOwner(ownerId, statuses, page, size);
     }
@@ -146,6 +150,7 @@ public class ReservationService {
      * cátedra cancelar es idempotente. El AppointmentCancelled que llega después por Kafka ya no
      * cambia nada.
      */
+    @Override
     public ReservationProcess cancel(long ownerId, long id, String reason) {
         ReservationProcess process = get(ownerId, id);
         process.ensureCanBeCancelled();
@@ -159,6 +164,7 @@ public class ReservationService {
     /**
      * Un usuario solo ve sus procesos. Uno ajeno da el mismo error que uno que no existe.
      */
+    @Override
     public ReservationProcess get(long ownerId, long id) {
         return processes
             .findById(id)
@@ -195,15 +201,4 @@ public class ReservationService {
     private Instant now() {
         return clock.instant();
     }
-
-    /**
-     * Lo que pide el usuario. professionalId es el id local del catálogo.
-     */
-    public record StartReservation(
-        long professionalId,
-        LocalDate date,
-        LocalTime startTime,
-        String patientFirstName,
-        String patientLastName
-    ) {}
 }

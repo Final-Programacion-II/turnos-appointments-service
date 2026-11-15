@@ -6,6 +6,7 @@ import ar.edu.um.turnos.appointments.reservation.domain.Appointment;
 import ar.edu.um.turnos.appointments.reservation.domain.Patient;
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationProcess;
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationStatus;
+import ar.edu.um.turnos.appointments.reservation.ports.in.CatedraEvent;
 import ar.edu.um.turnos.appointments.reservation.ports.out.ReservationProcessRepository.EventResult;
 import java.time.Clock;
 import java.time.Instant;

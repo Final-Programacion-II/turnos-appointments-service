@@ -18,14 +18,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import ar.edu.um.turnos.appointments.IntegrationTest;
-import ar.edu.um.turnos.appointments.reservation.application.CatedraEvent;
-import ar.edu.um.turnos.appointments.reservation.application.CatedraEventService;
-import ar.edu.um.turnos.appointments.reservation.application.ReconciliationService;
 import ar.edu.um.turnos.appointments.reservation.domain.CatedraAppointment;
 import ar.edu.um.turnos.appointments.reservation.domain.CatedraRejectedException;
 import ar.edu.um.turnos.appointments.reservation.domain.CatedraUnavailableException;
 import ar.edu.um.turnos.appointments.reservation.domain.Occupancy;
 import ar.edu.um.turnos.appointments.reservation.domain.ProfessionalAgenda;
+import ar.edu.um.turnos.appointments.reservation.ports.in.CatedraEvent;
+import ar.edu.um.turnos.appointments.reservation.ports.in.HandleCatedraEventUseCase;
+import ar.edu.um.turnos.appointments.reservation.ports.in.ReconcileReservationsUseCase;
 import ar.edu.um.turnos.appointments.reservation.ports.out.CatedraAppointments;
 import ar.edu.um.turnos.appointments.reservation.ports.out.CatedraReservations;
 import ar.edu.um.turnos.appointments.reservation.ports.out.OccupancySource;
@@ -94,11 +94,11 @@ class ReservationIT {
 
     // La reconciliación tampoco corre sola en los tests: se llama directo
     @Autowired
-    private ReconciliationService reconciliation;
+    private ReconcileReservationsUseCase reconciliation;
 
-    // El listener de Kafka está apagado en los tests: los eventos se aplican llamando a este servicio
+    // El listener de Kafka está apagado en los tests: los eventos se aplican por el mismo puerto que usa el listener
     @Autowired
-    private CatedraEventService catedraEvents;
+    private HandleCatedraEventUseCase catedraEvents;
 
     @BeforeEach
     void catalogoConUnaAgenda() {
@@ -305,7 +305,7 @@ class ReservationIT {
             List.of(new CatedraAppointment("process-1", CatedraAppointment.Status.FAILED, 8251L, null))
         );
 
-        ReconciliationService.Result resultado = reconciliation.reconcile();
+        ReconcileReservationsUseCase.Result resultado = reconciliation.reconcile();
         enLaBase();
 
         assertThat(resultado.changed()).isEqualTo(1);

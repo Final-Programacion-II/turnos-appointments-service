@@ -1,4 +1,5 @@
 <!-- calidad:inicio -->
+
 ![Calidad](https://img.shields.io/badge/Calidad-60%2F100-green) ![Aprobar](https://img.shields.io/badge/Aprobar-no-red) ![Destacar](https://img.shields.io/badge/Destacar-no-lightgrey) ![Build](https://img.shields.io/badge/Build-OK-green) ![Duplicación](https://img.shields.io/badge/Duplicaci%C3%B3n-9.2%25-orange) ![%POO](https://img.shields.io/badge/%25POO-83%25-green) ![Sueltas](https://img.shields.io/badge/Sueltas-0-green) ![D1](https://img.shields.io/badge/D1-1-red) ![D2](https://img.shields.io/badge/D2-0-red) ![D4](https://img.shields.io/badge/D4-90-green) ![D5](https://img.shields.io/badge/D5-100-green) ![D6](https://img.shields.io/badge/D6-100-green) ![D7](https://img.shields.io/badge/D7-100-green)
 
 **Calidad (heurístico, 7 dimensiones):** índice **60/100** · build **OK** · aprobar **no (5/11)** · destacar **no**
@@ -77,15 +78,15 @@ cada PR (`.github/workflows/ci.yml`).
 
 Qué cubren los tests de cada parte:
 
-| Parte                         | Tests                                                                                                         |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Registro, login y contraseñas | `AccountResourceIT`, `AuthenticateControllerIT`, `UserServiceIT`, `DomainUserDetailsServiceIT`                |
-| Disponibilidad                | `AvailabilityTest`, `AvailabilityIT`, `CatalogRestAdapterTest`, `CatedraRestAdapterTest`                      |
-| Proceso de reserva y estados  | `ReservationProcessTest`, `ReservationServiceTest`, `CatedraHoldAdapterTest`, `ReservationIT`                 |
-| Kafka e idempotencia          | `CatedraEventServiceTest`, `CatedraActionsListenerTest`, `KafkaPhoneSubmissionPublisherTest`, `ReservationIT` |
-| Reconciliación                | `ReconciliationServiceTest`, `CatedraAppointmentsAdapterTest`, `ReservationIT`                                |
-| Autorización entre usuarios   | `ReservationServiceTest`, `ReservationIT`                                                                     |
-| Arquitectura                  | `ReservationArchitectureTest` (el dominio no depende de Spring, JPA ni Jackson)                               |
+| Parte                         | Tests                                                                                                                                      |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Registro, login y contraseñas | `AccountResourceIT`, `AuthenticateControllerIT`, `UserServiceIT`, `DomainUserDetailsServiceIT`                                             |
+| Disponibilidad                | `AvailabilityTest`, `AvailabilityIT`, `CatalogRestAdapterTest`, `CatedraRestAdapterTest`                                                   |
+| Proceso de reserva y estados  | `ReservationProcessTest`, `ReservationServiceTest`, `CatedraHoldAdapterTest`, `ReservationIT`                                              |
+| Kafka e idempotencia          | `CatedraEventServiceTest`, `CatedraActionsListenerTest`, `KafkaPhoneSubmissionPublisherTest`, `ReservationIT`                              |
+| Reconciliación                | `ReconciliationServiceTest`, `CatedraAppointmentsAdapterTest`, `ReservationIT`                                                             |
+| Autorización entre usuarios   | `ReservationServiceTest`, `ReservationIT`                                                                                                  |
+| Arquitectura                  | `ReservationArchitectureTest` (el dominio no depende de frameworks; los adaptadores de entrada usan los puertos), `TechnicalStructureTest` |
 
 ## Documentación
 

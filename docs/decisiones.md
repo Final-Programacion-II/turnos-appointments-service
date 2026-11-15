@@ -175,3 +175,20 @@ El resumen completo está en [seguridad.md](seguridad.md). Estas son las decisio
 - Descartado: cambiarles la contraseña a los usuarios de ejemplo. Habría que poner una
   contraseña en un changeset, o sea en el repositorio.
 
+## 13. Puertos de entrada en el módulo de reservas
+
+El módulo de reservas ya tenía dominio, puertos de salida y adaptadores, pero los adaptadores
+de entrada (la API REST, el listener de Kafka y el scheduler) usaban directamente las clases de
+`application`.
+
+- Decisión: cada caso de uso tiene una interfaz en `reservation.ports.in`
+  (`CheckAvailabilityUseCase`, `ManageReservationsUseCase`, `HandleCatedraEventUseCase` y
+  `ReconcileReservationsUseCase`). Los servicios de `application` las implementan y los
+  adaptadores de entrada dependen solo de ellas.
+- Motivo: un adaptador se prueba con un doble del puerto (así lo hace
+  `CatedraActionsListenerTest`) y se puede cambiar la implementación sin tocarlo. Además, el
+  puerto deja a la vista qué ofrece el módulo sin tener que leer los servicios.
+- `ReservationArchitectureTest` verifica que los adaptadores de entrada no usen `application`.
+- Descartado: pasar también los usuarios a hexagonal. Es un ABM generado por JHipster sin
+  reglas de negocio propias; separar dominio y persistencia ahí sería duplicar clases sin
+  ganar nada.

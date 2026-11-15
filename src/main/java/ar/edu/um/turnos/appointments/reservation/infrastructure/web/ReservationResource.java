@@ -1,8 +1,8 @@
 package ar.edu.um.turnos.appointments.reservation.infrastructure.web;
 
-import ar.edu.um.turnos.appointments.reservation.application.ReservationService;
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationProcess;
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationStatus;
+import ar.edu.um.turnos.appointments.reservation.ports.in.ManageReservationsUseCase;
 import ar.edu.um.turnos.appointments.reservation.ports.out.ReservationProcessRepository.ReservationPage;
 import ar.edu.um.turnos.appointments.security.SecurityUtils;
 import jakarta.validation.Valid;
@@ -40,10 +40,10 @@ public class ReservationResource {
 
     private static final int MAX_PAGE_SIZE = 100;
 
-    private final ReservationService reservationService;
+    private final ManageReservationsUseCase reservations;
 
-    public ReservationResource(ReservationService reservationService) {
-        this.reservationService = reservationService;
+    public ReservationResource(ManageReservationsUseCase reservations) {
+        this.reservations = reservations;
     }
 
     /**
@@ -53,9 +53,9 @@ public class ReservationResource {
      */
     @PostMapping
     public ResponseEntity<ReservationDTO> start(@Valid @RequestBody StartReservationRequest request) {
-        ReservationProcess process = reservationService.start(
+        ReservationProcess process = reservations.start(
             currentUserId(),
-            new ReservationService.StartReservation(
+            new ManageReservationsUseCase.StartReservation(
                 request.professionalId(),
                 request.date(),
                 request.startTime(),
@@ -84,7 +84,7 @@ public class ReservationResource {
         if (status != null) {
             statuses.addAll(status);
         }
-        ReservationPage result = reservationService.list(currentUserId(), statuses, page, size);
+        ReservationPage result = reservations.list(currentUserId(), statuses, page, size);
         List<ReservationDTO> items = result.items().stream().map(ReservationDTO::of).toList();
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(
             ServletUriComponentsBuilder.fromCurrentRequest(),
@@ -98,7 +98,7 @@ public class ReservationResource {
      */
     @GetMapping("/{id}")
     public ReservationDTO get(@PathVariable("id") long id) {
-        return ReservationDTO.of(reservationService.get(currentUserId(), id));
+        return ReservationDTO.of(reservations.get(currentUserId(), id));
     }
 
     /**
@@ -106,7 +106,7 @@ public class ReservationResource {
      */
     @PostMapping("/{id}/confirm")
     public ReservationDTO retryConfirmation(@PathVariable("id") long id) {
-        return ReservationDTO.of(reservationService.retryConfirmation(currentUserId(), id));
+        return ReservationDTO.of(reservations.retryConfirmation(currentUserId(), id));
     }
 
     /**
@@ -116,7 +116,7 @@ public class ReservationResource {
      */
     @PostMapping("/{id}/phone")
     public ReservationDTO submitPhone(@PathVariable("id") long id, @Valid @RequestBody PhoneRequest request) {
-        return ReservationDTO.of(reservationService.submitPhone(currentUserId(), id, request.phoneNumber()));
+        return ReservationDTO.of(reservations.submitPhone(currentUserId(), id, request.phoneNumber()));
     }
 
     /**
@@ -126,7 +126,7 @@ public class ReservationResource {
     @PostMapping("/{id}/cancel")
     public ReservationDTO cancel(@PathVariable("id") long id, @Valid @RequestBody(required = false) CancelRequest request) {
         String reason = request == null ? null : request.reason();
-        return ReservationDTO.of(reservationService.cancel(currentUserId(), id, reason));
+        return ReservationDTO.of(reservations.cancel(currentUserId(), id, reason));
     }
 
     private static long currentUserId() {

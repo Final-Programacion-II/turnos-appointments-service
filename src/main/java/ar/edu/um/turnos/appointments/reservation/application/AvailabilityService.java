@@ -3,6 +3,7 @@ package ar.edu.um.turnos.appointments.reservation.application;
 import ar.edu.um.turnos.appointments.reservation.domain.Availability;
 import ar.edu.um.turnos.appointments.reservation.domain.AvailableSlot;
 import ar.edu.um.turnos.appointments.reservation.domain.ProfessionalAgenda;
+import ar.edu.um.turnos.appointments.reservation.ports.in.CheckAvailabilityUseCase;
 import ar.edu.um.turnos.appointments.reservation.ports.out.OccupancySource;
 import ar.edu.um.turnos.appointments.reservation.ports.out.ProfessionalAgendaSource;
 import java.time.Clock;
@@ -13,7 +14,7 @@ import java.util.List;
  * Turnos libres de un profesional en una fecha. Cada consulta pide la agenda vigente al
  * catálogo y las ocupaciones a la cátedra: no se guarda nada, porque las dos cambian.
  */
-public class AvailabilityService {
+public class AvailabilityService implements CheckAvailabilityUseCase {
 
     private final ProfessionalAgendaSource agendas;
     private final OccupancySource occupancies;
@@ -25,6 +26,7 @@ public class AvailabilityService {
         this.clock = clock;
     }
 
+    @Override
     public Result availability(long professionalId, LocalDate date) {
         if (date.isBefore(LocalDate.now(clock))) {
             throw new IllegalArgumentException("La fecha " + date + " ya pasó");
@@ -36,6 +38,4 @@ public class AvailabilityService {
         List<AvailableSlot> slots = Availability.of(agenda, date, occupancies.occupancies(agenda.externalId(), date, date), clock);
         return new Result(agenda, date, slots);
     }
-
-    public record Result(ProfessionalAgenda agenda, LocalDate date, List<AvailableSlot> slots) {}
 }

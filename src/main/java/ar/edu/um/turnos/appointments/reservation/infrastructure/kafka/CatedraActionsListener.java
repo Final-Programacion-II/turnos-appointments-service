@@ -1,7 +1,7 @@
 package ar.edu.um.turnos.appointments.reservation.infrastructure.kafka;
 
-import ar.edu.um.turnos.appointments.reservation.application.CatedraEvent;
-import ar.edu.um.turnos.appointments.reservation.application.CatedraEventService;
+import ar.edu.um.turnos.appointments.reservation.ports.in.CatedraEvent;
+import ar.edu.um.turnos.appointments.reservation.ports.in.HandleCatedraEventUseCase;
 import ar.edu.um.turnos.appointments.reservation.ports.out.ReservationProcessRepository.EventResult;
 import java.time.Instant;
 import java.util.Map;
@@ -42,11 +42,11 @@ public class CatedraActionsListener {
         CatedraEvent.Type.CANCELLED
     );
 
-    private final CatedraEventService events;
+    private final HandleCatedraEventUseCase events;
     // La referencia pide ignorar los campos nuevos que la cátedra pueda agregar
     private final JsonMapper json = JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
-    public CatedraActionsListener(CatedraEventService events) {
+    public CatedraActionsListener(HandleCatedraEventUseCase events) {
         this.events = events;
     }
 

@@ -4,6 +4,7 @@ import ar.edu.um.turnos.appointments.reservation.domain.CatedraAppointment;
 import ar.edu.um.turnos.appointments.reservation.domain.CatedraUnavailableException;
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationProcess;
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationStatus;
+import ar.edu.um.turnos.appointments.reservation.ports.in.ReconcileReservationsUseCase;
 import ar.edu.um.turnos.appointments.reservation.ports.out.CatedraAppointments;
 import ar.edu.um.turnos.appointments.reservation.ports.out.ReservationProcessRepository;
 import java.time.Clock;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
  * es que el resultado llegue por Kafka en segundos, y no tiene sentido adelantarse. Se hace una
  * consulta a la cátedra por usuario, no por proceso.
  */
-public class ReconciliationService {
+public class ReconciliationService implements ReconcileReservationsUseCase {
 
     /** Tiempo que se le da a Kafka después del vencimiento antes de preguntar por REST. */
     static final Duration GRACE = Duration.ofMinutes(1);
@@ -40,9 +41,7 @@ public class ReconciliationService {
         this.clock = clock;
     }
 
-    /**
-     * Una pasada de reconciliación.
-     */
+    @Override
     public Result reconcile() {
         Instant now = clock.instant();
         List<ReservationProcess> pending = processes.findOpenExpiredBefore(now.minus(GRACE), MAX_PER_RUN);
@@ -87,11 +86,4 @@ public class ReconciliationService {
         });
         return after.status() != before;
     }
-
-    /**
-     * @param checked procesos revisados en esta pasada.
-     * @param changed procesos que cambiaron de estado.
-     * @param skipped procesos que no se pudieron revisar porque la cátedra no respondió.
-     */
-    public record Result(int checked, int changed, int skipped) {}
 }

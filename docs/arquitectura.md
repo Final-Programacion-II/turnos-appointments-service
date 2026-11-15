@@ -109,3 +109,19 @@ El detalle de las tablas de turnos está en [modelo-datos.md](modelo-datos.md).
 Por dentro, la lógica de reservas de turnos (`reservation`) y la sincronización del catálogo
 (`sync`) siguen una arquitectura hexagonal: un dominio sin dependencias de frameworks,
 puertos y adaptadores. ArchUnit lo verifica en cada build.
+
+En el servicio de turnos, el módulo `reservation` se organiza así:
+
+| Paquete | Qué tiene |
+| --- | --- |
+| `reservation.domain` | El proceso de reserva, sus estados y reglas, y el cálculo de turnos libres. Java puro. |
+| `reservation.ports.in` | Casos de uso que ofrece el módulo: consultar disponibilidad, manejar reservas, aplicar un evento de la cátedra y reconciliar. |
+| `reservation.ports.out` | Lo que el módulo necesita de afuera: catálogo, cátedra (REST y Kafka) y la base. |
+| `reservation.application` | Servicios que implementan los casos de uso usando el dominio y los puertos de salida. |
+| `reservation.infrastructure` | Adaptadores: API REST, listener y productor de Kafka, clientes HTTP, JPA y el scheduler. |
+
+Los adaptadores de entrada (REST, Kafka y scheduler) dependen de los puertos de `ports.in`, no
+de las clases de `application`.
+
+El resto del servicio (usuarios, login y configuración) es la estructura por capas que genera
+JHipster.
