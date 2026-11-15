@@ -1,7 +1,7 @@
 package ar.edu.um.turnos.appointments.reservation.infrastructure.web;
 
-import ar.edu.um.turnos.appointments.reservation.application.AvailabilityService;
 import ar.edu.um.turnos.appointments.reservation.domain.AvailableSlot;
+import ar.edu.um.turnos.appointments.reservation.ports.in.CheckAvailabilityUseCase;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/availability")
 public class AvailabilityResource {
 
-    private final AvailabilityService availabilityService;
+    private final CheckAvailabilityUseCase availability;
 
-    public AvailabilityResource(AvailabilityService availabilityService) {
-        this.availabilityService = availabilityService;
+    public AvailabilityResource(CheckAvailabilityUseCase availability) {
+        this.availability = availability;
     }
 
     /**
@@ -30,7 +30,7 @@ public class AvailabilityResource {
      */
     @GetMapping
     public AvailabilityDTO getAvailability(@RequestParam("professionalId") long professionalId, @RequestParam("date") LocalDate date) {
-        AvailabilityService.Result result = availabilityService.availability(professionalId, date);
+        CheckAvailabilityUseCase.Result result = availability.availability(professionalId, date);
         return new AvailabilityDTO(
             result.agenda().professionalId(),
             result.agenda().firstName() + " " + result.agenda().lastName(),

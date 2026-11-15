@@ -1,6 +1,6 @@
 package ar.edu.um.turnos.appointments.reservation.infrastructure.scheduling;
 
-import ar.edu.um.turnos.appointments.reservation.application.ReconciliationService;
+import ar.edu.um.turnos.appointments.reservation.ports.in.ReconcileReservationsUseCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -17,9 +17,9 @@ public class ReconciliationScheduler {
 
     private static final Logger LOG = LoggerFactory.getLogger(ReconciliationScheduler.class);
 
-    private final ReconciliationService reconciliation;
+    private final ReconcileReservationsUseCase reconciliation;
 
-    public ReconciliationScheduler(ReconciliationService reconciliation) {
+    public ReconciliationScheduler(ReconcileReservationsUseCase reconciliation) {
         this.reconciliation = reconciliation;
     }
 
@@ -29,7 +29,7 @@ public class ReconciliationScheduler {
     )
     public void reconcile() {
         try {
-            ReconciliationService.Result result = reconciliation.reconcile();
+            ReconcileReservationsUseCase.Result result = reconciliation.reconcile();
             if (result.checked() > 0) {
                 LOG.info(
                     "Reconciliación: {} procesos revisados, {} actualizados, {} sin revisar (cátedra no disponible)",

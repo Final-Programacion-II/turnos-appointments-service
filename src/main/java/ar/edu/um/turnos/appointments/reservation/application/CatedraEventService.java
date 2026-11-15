@@ -1,6 +1,8 @@
 package ar.edu.um.turnos.appointments.reservation.application;
 
 import ar.edu.um.turnos.appointments.reservation.domain.ReservationProcess;
+import ar.edu.um.turnos.appointments.reservation.ports.in.CatedraEvent;
+import ar.edu.um.turnos.appointments.reservation.ports.in.HandleCatedraEventUseCase;
 import ar.edu.um.turnos.appointments.reservation.ports.out.ReservationProcessRepository;
 import ar.edu.um.turnos.appointments.reservation.ports.out.ReservationProcessRepository.EventResult;
 import java.time.Clock;
@@ -14,7 +16,7 @@ import java.time.Instant;
  * - el dominio ignora los eventos que no corresponden al estado actual, así un evento viejo
  *   no reabre un proceso terminado.
  */
-public class CatedraEventService {
+public class CatedraEventService implements HandleCatedraEventUseCase {
 
     private final ReservationProcessRepository processes;
     private final Clock clock;
@@ -24,6 +26,7 @@ public class CatedraEventService {
         this.clock = clock;
     }
 
+    @Override
     public EventResult handle(CatedraEvent event) {
         Instant now = clock.instant();
         return processes.applyOnce(event.reservationProcessId(), event.eventId(), process -> apply(process, event, now));

@@ -28,4 +28,16 @@ class ReservationArchitectureTest {
         .should()
         .dependOnClassesThat()
         .resideInAPackage("..reservation.infrastructure..");
+
+    @ArchTest
+    static final ArchRule losAdaptadoresDeEntradaUsanLosPuertos = noClasses()
+        .that()
+        .resideInAnyPackage(
+            "..reservation.infrastructure.web..",
+            "..reservation.infrastructure.kafka..",
+            "..reservation.infrastructure.scheduling.."
+        )
+        .should()
+        .dependOnClassesThat()
+        .resideInAPackage("..reservation.application..");
 }
