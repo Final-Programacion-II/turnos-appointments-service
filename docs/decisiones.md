@@ -192,3 +192,25 @@ de entrada (la API REST, el listener de Kafka y el scheduler) usaban directament
 - Descartado: pasar también los usuarios a hexagonal. Es un ABM generado por JHipster sin
   reglas de negocio propias; separar dominio y persistencia ahí sería duplicar clases sin
   ganar nada.
+
+## 14. De los usuarios de JHipster, solo lo que el sistema usa
+
+JHipster genera una gestión de usuarios completa: activación y recuperación de contraseña por
+mail, administración de usuarios y roles, y una lista pública de usuarios. El sistema solo
+necesita registro, login, la propia cuenta y el cambio de contraseña (secciones 3.2 y 9 del
+enunciado). Lo demás quedaba sin usar, sin servidor de mail y con endpoints públicos abiertos.
+
+- Decisión: se sacan `MailService` y sus plantillas, `/api/activate`,
+  `/api/account/reset-password/*`, `/api/admin/users`, `/api/authorities` y `/api/users`, con
+  sus DTO, mapper y tests. También la dependencia de mail.
+- Decisión: los datos que entran y salen son `record` (`RegistrationDTO`, `AccountUpdateDTO`,
+  `AccountDTO` y `PasswordChangeDTO`). El registro recibe solo los campos que el usuario
+  puede elegir; antes recibía el DTO de administración, que también traía id, roles y
+  activación, y había que acordarse de ignorarlos.
+- Decisión: registrarse con el login o el email de una cuenta desactivada da error. JHipster
+  la borraba y la reemplazaba, pensando en cuentas que nunca se activaron por mail. Acá no hay
+  activación por mail: una cuenta desactivada es una cuenta dada de baja.
+- Los campos y los límites del registro son los de JHipster, como pide el enunciado. Las
+  rutas que quedan tampoco cambian.
+- Descartado: dejar la recuperación de contraseña. El enunciado la marca como opcional y sin
+  servidor de mail no se puede completar.

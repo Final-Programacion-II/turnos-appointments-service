@@ -30,7 +30,8 @@ su propia API en su repo.
 | POST | `/api/register` | No | Registra un usuario. 201. |
 | POST | `/api/authenticate` | No | Inicia sesión. 200 con `{ "id_token": "..." }`, o 401. |
 | GET | `/api/account` | Sí | Datos del usuario del token |
-| POST | `/api/account/change-password` | Sí | Cambia la contraseña |
+| POST | `/api/account` | Sí | Cambia nombre, apellido, email, idioma e imagen del usuario del token |
+| POST | `/api/account/change-password` | Sí | Cambia la contraseña: `{ "currentPassword": "...", "newPassword": "..." }` |
 
 Registro (los mismos campos y límites que el usuario de JHipster):
 
@@ -48,8 +49,15 @@ Registro (los mismos campos y límites que el usuario de JHipster):
 
 - `login`: de 1 a 50 caracteres (letras, números y `_.@-`). `password`: de 4 a 100.
 - `email`: válido, de 5 a 254. `firstName` y `lastName`: hasta 50. `imageUrl`: opcional.
-- El usuario queda activo enseguida. El id, la activación y los roles los decide el backend.
-- Un login o un email repetido da 400.
+- El usuario queda activo enseguida. El id, la activación y los roles los decide el backend:
+  si el pedido los trae, se ignoran.
+- Un login o un email repetido da 400, también si esa cuenta está desactivada.
+
+`GET /api/account` devuelve `id`, `login`, `firstName`, `lastName`, `email`, `imageUrl`,
+`activated`, `langKey`, `authorities` y las fechas de auditoría. Nunca la contraseña.
+
+No hay endpoints para activar una cuenta, recuperar la contraseña por mail ni administrar o
+listar usuarios: se sacaron porque el sistema no los usa (decisiones, punto 14).
 
 Login: `{ "username": "ana", "password": "clave1234", "rememberMe": false }`. El token dura
 24 horas, o 30 días con `rememberMe`. Cualquier falla da el mismo 401.
