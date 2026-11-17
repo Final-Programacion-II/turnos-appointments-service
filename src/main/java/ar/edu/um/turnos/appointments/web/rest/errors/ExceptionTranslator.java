@@ -3,6 +3,7 @@ package ar.edu.um.turnos.appointments.web.rest.errors;
 import static org.springframework.core.annotation.AnnotatedElementUtils.findMergedAnnotation;
 
 import ar.edu.um.turnos.appointments.security.UserNotActivatedException;
+import ar.edu.um.turnos.appointments.service.CurrentUserNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import java.net.URI;
@@ -241,6 +242,8 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
         // desactivado (que Spring envuelve en InternalAuthenticationServiceException) daba 500.
         if (err instanceof AuthenticationException) return HttpStatus.UNAUTHORIZED;
         if (err instanceof ConstraintViolationException) return HttpStatus.BAD_REQUEST;
+        // El token es válido pero su usuario ya no existe: se le pide que vuelva a iniciar sesión
+        if (err instanceof CurrentUserNotFoundException) return HttpStatus.UNAUTHORIZED;
         return null;
     }
 

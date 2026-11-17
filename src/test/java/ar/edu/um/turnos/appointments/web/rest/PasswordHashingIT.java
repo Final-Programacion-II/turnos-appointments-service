@@ -9,8 +9,8 @@ import ar.edu.um.turnos.appointments.IntegrationTest;
 import ar.edu.um.turnos.appointments.config.Constants;
 import ar.edu.um.turnos.appointments.domain.User;
 import ar.edu.um.turnos.appointments.repository.UserRepository;
+import ar.edu.um.turnos.appointments.service.dto.RegistrationDTO;
 import ar.edu.um.turnos.appointments.web.rest.vm.LoginVM;
-import ar.edu.um.turnos.appointments.web.rest.vm.ManagedUserVM;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,13 +36,15 @@ class PasswordHashingIT {
     @Test
     @Transactional
     void unUsuarioNuevoQuedaConArgon2idYPuedeEntrarEnseguida() throws Exception {
-        ManagedUserVM nuevo = new ManagedUserVM();
-        nuevo.setLogin("paciente-argon");
-        nuevo.setPassword("clave-segura");
-        nuevo.setFirstName("Juan");
-        nuevo.setLastName("Perez");
-        nuevo.setEmail("paciente-argon@example.com");
-        nuevo.setLangKey(Constants.DEFAULT_LANGUAGE);
+        RegistrationDTO nuevo = new RegistrationDTO(
+            "paciente-argon",
+            "clave-segura",
+            "Juan",
+            "Perez",
+            "paciente-argon@example.com",
+            null,
+            Constants.DEFAULT_LANGUAGE
+        );
 
         mockMvc
             .perform(post("/api/register").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(nuevo)))

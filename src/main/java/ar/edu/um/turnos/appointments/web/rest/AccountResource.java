@@ -1,33 +1,28 @@
 package ar.edu.um.turnos.appointments.web.rest;
 
-import ar.edu.um.turnos.appointments.domain.User;
-import ar.edu.um.turnos.appointments.repository.UserRepository;
-import ar.edu.um.turnos.appointments.security.SecurityUtils;
-import ar.edu.um.turnos.appointments.service.MailService;
 import ar.edu.um.turnos.appointments.service.UserService;
-import ar.edu.um.turnos.appointments.service.dto.AdminUserDTO;
+import ar.edu.um.turnos.appointments.service.dto.AccountDTO;
+import ar.edu.um.turnos.appointments.service.dto.AccountUpdateDTO;
 import ar.edu.um.turnos.appointments.service.dto.PasswordChangeDTO;
-import ar.edu.um.turnos.appointments.web.rest.errors.*;
-import ar.edu.um.turnos.appointments.web.rest.vm.KeyAndPasswordVM;
-import ar.edu.um.turnos.appointments.web.rest.vm.ManagedUserVM;
+import ar.edu.um.turnos.appointments.service.dto.RegistrationDTO;
+import ar.edu.um.turnos.appointments.web.rest.errors.InvalidPasswordException;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Size;
-import java.util.*;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST controller for managing the current user's account.
+ * Registro y cuenta del usuario autenticado. Las rutas y los campos son los de JHipster, que es
+ * el contrato de usuarios que pide el enunciado.
  */
 @RestController
 @RequestMapping("/api")
-@Validated
 public class AccountResource {
 
     @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Account resource request invalid")
@@ -40,164 +35,58 @@ public class AccountResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(AccountResource.class);
 
-    private final UserRepository userRepository;
-
     private final UserService userService;
 
-    private final MailService mailService;
-
-    private final PasswordEncoder passwordEncoder;
-
-    public AccountResource(
-        UserRepository userRepository,
-        UserService userService,
-        MailService mailService,
-        PasswordEncoder passwordEncoder
-    ) {
-        this.userRepository = userRepository;
+    public AccountResource(UserService userService) {
         this.userService = userService;
-        this.mailService = mailService;
-        this.passwordEncoder = passwordEncoder;
     }
 
     /**
-     * {@code POST  /register} : register the user.
-     *
-     * @param managedUserVM the managed user View Model.
-     * @throws InvalidPasswordException {@code 400 (Bad Request)} if the password is incorrect.
-     * @throws EmailAlreadyUsedException {@code 400 (Bad Request)} if the email is already used.
-     * @throws LoginAlreadyUsedException {@code 400 (Bad Request)} if the login is already used.
+     * {@code POST /register}: registra un usuario. Es público.
+     * Responde 201, o 400 si los datos no son válidos o el login o el email ya existen.
      */
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public void registerAccount(@Valid @RequestBody ManagedUserVM managedUserVM) {
+    public void registerAccount(@Valid @RequestBody RegistrationDTO registration) {
         LOG.debug("REST request to register account");
-        if (isPasswordLengthInvalid(managedUserVM.getPassword())) {
+        if (RegistrationDTO.isPasswordLengthInvalid(registration.password())) {
             throw new InvalidPasswordException();
         }
-        userService.registerUser(managedUserVM, managedUserVM.getPassword());
+        userService.registerUser(registration);
     }
 
     /**
-     * {@code GET  /activate} : activate the registered user.
-     *
-     * @param key the activation key.
-     * @throws RuntimeException {@code 500 (Internal Server Error)} if the user couldn't be activated.
-     */
-    @GetMapping("/activate")
-    public void activateAccount(@RequestParam(value = "key") String key) {
-        LOG.debug("REST request to activate account");
-        Optional<User> user = userService.activateRegistration(key);
-        if (!user.isPresent()) {
-            throw new AccountResourceException("No user was found for this activation key");
-        }
-    }
-
-    /**
-     * {@code GET  /account} : get the current user.
-     *
-     * @return the current user.
-     * @throws RuntimeException {@code 500 (Internal Server Error)} if the user couldn't be returned.
+     * {@code GET /account}: la cuenta del usuario del token.
      */
     @GetMapping("/account")
-    public AdminUserDTO getAccount() {
+    public AccountDTO getAccount() {
         LOG.debug("REST request to get account");
         return userService
             .getUserWithAuthorities()
-            .map(AdminUserDTO::new)
+            .map(AccountDTO::from)
             .orElseThrow(() -> new AccountResourceException("User could not be found"));
     }
 
     /**
-     * {@code POST  /account} : update the current user information.
-     *
-     * @param userDTO the current user information.
-     * @throws EmailAlreadyUsedException {@code 400 (Bad Request)} if the email is already used.
-     * @throws RuntimeException {@code 500 (Internal Server Error)} if the user login wasn't found.
+     * {@code POST /account}: cambia nombre, apellido, email, idioma e imagen del usuario del
+     * token. Responde 400 si el email ya es de otro usuario.
      */
     @PostMapping("/account")
-    public void saveAccount(@Valid @RequestBody AdminUserDTO userDTO) {
+    public void saveAccount(@Valid @RequestBody AccountUpdateDTO update) {
         LOG.debug("REST request to save account");
-        String userLogin = SecurityUtils.getCurrentUserLogin().orElseThrow(() ->
-            new AccountResourceException("Current user login not found")
-        );
-        Optional<User> existingUser = userRepository.findOneByEmailIgnoreCase(userDTO.getEmail());
-        if (existingUser.isPresent() && !existingUser.orElseThrow().getLogin().equalsIgnoreCase(userLogin)) {
-            throw new EmailAlreadyUsedException();
-        }
-        Optional<User> user = userRepository.findOneByLogin(userLogin);
-        if (!user.isPresent()) {
-            throw new AccountResourceException("User could not be found");
-        }
-        userService.updateUser(
-            userDTO.getFirstName(),
-            userDTO.getLastName(),
-            userDTO.getEmail(),
-            userDTO.getLangKey(),
-            userDTO.getImageUrl()
-        );
+        userService.updateAccount(update);
     }
 
     /**
-     * {@code POST  /account/change-password} : changes the current user's password.
-     *
-     * @param passwordChangeDto current and new password.
-     * @throws InvalidPasswordException {@code 400 (Bad Request)} if the new password is incorrect.
+     * {@code POST /account/change-password}: cambia la contraseña del usuario del token.
+     * Responde 400 si la actual no coincide o la nueva no tiene un largo válido.
      */
     @PostMapping(path = "/account/change-password")
-    public void changePassword(@RequestBody PasswordChangeDTO passwordChangeDto) {
+    public void changePassword(@RequestBody PasswordChangeDTO passwordChange) {
         LOG.debug("REST request to change password");
-        if (isPasswordLengthInvalid(passwordChangeDto.getNewPassword())) {
+        if (RegistrationDTO.isPasswordLengthInvalid(passwordChange.newPassword())) {
             throw new InvalidPasswordException();
         }
-        userService.changePassword(passwordChangeDto.getCurrentPassword(), passwordChangeDto.getNewPassword());
-    }
-
-    /**
-     * {@code POST   /account/reset-password/init} : Send an email to reset the password of the user.
-     *
-     * @param mail the mail of the user.
-     */
-    @PostMapping(path = "/account/reset-password/init")
-    public void requestPasswordReset(@RequestBody @Email @Size(min = 5, max = 254) String mail) {
-        LOG.debug("REST request to request password reset");
-        Optional<User> user = userService.requestPasswordReset(mail);
-        if (user.isPresent()) {
-            mailService.sendPasswordResetMail(user.orElseThrow());
-        } else {
-            // Pretend the request has been successful to prevent checking which emails really exist
-            // but log that an invalid attempt has been made
-            LOG.warn("Password reset requested for non existing mail");
-        }
-    }
-
-    /**
-     * {@code POST   /account/reset-password/finish} : Finish to reset the password of the user.
-     *
-     * @param keyAndPassword the generated key and the new password.
-     * @throws InvalidPasswordException {@code 400 (Bad Request)} if the password is incorrect.
-     * @throws RuntimeException {@code 500 (Internal Server Error)} if the password could not be reset.
-     */
-    @PostMapping(path = "/account/reset-password/finish")
-    public void finishPasswordReset(@RequestBody KeyAndPasswordVM keyAndPassword) {
-        if (isPasswordLengthInvalid(keyAndPassword.getNewPassword())) {
-            throw new InvalidPasswordException();
-        }
-        Optional<User> user = userService.completePasswordReset(keyAndPassword.getNewPassword(), keyAndPassword.getKey());
-
-        if (!user.isPresent()) {
-            // Dummy hash to prevent reset-key enumeration via response-time timing attack:
-            // mirrors the bcrypt cost of a successful path so both branches take equal time.
-            passwordEncoder.encode(keyAndPassword.getNewPassword());
-            throw new AccountResourceException("No user was found for this reset key");
-        }
-    }
-
-    private static boolean isPasswordLengthInvalid(String password) {
-        return (
-            StringUtils.isEmpty(password) ||
-            password.length() < ManagedUserVM.PASSWORD_MIN_LENGTH ||
-            password.length() > ManagedUserVM.PASSWORD_MAX_LENGTH
-        );
+        userService.changePassword(passwordChange.currentPassword(), passwordChange.newPassword());
     }
 }

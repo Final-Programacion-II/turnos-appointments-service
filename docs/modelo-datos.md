@@ -40,6 +40,10 @@ erDiagram
 | `jhi_authority` | Roles: `ROLE_USER` y `ROLE_ADMIN` |
 | `jhi_user_authority` | Qué roles tiene cada usuario |
 
+En `jhi_user` quedan tres columnas de JHipster sin usar (`activation_key`, `reset_key` y
+`reset_date`): eran de la activación y la recuperación de contraseña por mail, que se sacaron.
+No se borran para no tocar el esquema inicial que genera JHipster.
+
 Al registrarse, el usuario queda activo y con `ROLE_USER`. En producción, los usuarios de
 ejemplo de JHipster (`admin` y `user`) están desactivados (ver [seguridad.md](seguridad.md)).
 

@@ -1,45 +1,29 @@
 package ar.edu.um.turnos.appointments.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import ar.edu.um.turnos.appointments.IntegrationTest;
+import ar.edu.um.turnos.appointments.domain.Authority;
 import ar.edu.um.turnos.appointments.domain.User;
 import ar.edu.um.turnos.appointments.repository.UserRepository;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Optional;
+import ar.edu.um.turnos.appointments.security.AuthoritiesConstants;
+import ar.edu.um.turnos.appointments.service.dto.AccountUpdateDTO;
+import ar.edu.um.turnos.appointments.service.dto.RegistrationDTO;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.auditing.AuditingHandler;
-import org.springframework.data.auditing.DateTimeProvider;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.transaction.annotation.Transactional;
-import tech.jhipster.security.RandomUtil;
 
 /**
- * Integration tests for {@link UserService}.
+ * Registro, datos de la cuenta y cambio de contraseña, contra la base real.
+ * Cada test corre en una transacción que se deshace al terminar.
  */
 @IntegrationTest
 @Transactional
 class UserServiceIT {
-
-    private static final String DEFAULT_LOGIN = "johndoe_service";
-
-    private static final String DEFAULT_EMAIL = "johndoe_service@localhost";
-
-    private static final String DEFAULT_FIRSTNAME = "john";
-
-    private static final String DEFAULT_LASTNAME = "doe";
-
-    private static final String DEFAULT_IMAGEURL = "http://placehold.it/50x50";
-
-    private static final String DEFAULT_LANGKEY = "dummy";
 
     @Autowired
     private UserRepository userRepository;
@@ -48,146 +32,121 @@ class UserServiceIT {
     private UserService userService;
 
     @Autowired
-    private AuditingHandler auditingHandler;
+    private PasswordEncoder passwordEncoder;
 
-    @MockitoBean
-    private DateTimeProvider dateTimeProvider;
+    @Test
+    void registraUnUsuarioActivoConRolUserYLaContraseniaHasheada() {
+        User nuevo = userService.registerUser(registro("Ana.Servicio", "Ana.Servicio@Example.com"));
 
-    private User user;
+        User guardado = userRepository.findOneWithAuthoritiesByLogin("ana.servicio").orElseThrow();
+        assertThat(guardado.getId()).isEqualTo(nuevo.getId());
+        // El login y el email se guardan en minúsculas
+        assertThat(guardado.getEmail()).isEqualTo("ana.servicio@example.com");
+        assertThat(guardado.isActivated()).isTrue();
+        assertThat(guardado.getAuthorities()).extracting(Authority::getName).containsExactly(AuthoritiesConstants.USER);
+        assertThat(guardado.getPassword()).isNotEqualTo("clave-segura");
+        assertThat(passwordEncoder.matches("clave-segura", guardado.getPassword())).isTrue();
+    }
 
-    private Long numberOfUsers;
+    @Test
+    void rechazaUnLoginRepetido() {
+        userService.registerUser(registro("ana.servicio", "ana.servicio@example.com"));
 
-    @BeforeEach
-    void init() {
-        numberOfUsers = userRepository.count();
-        user = new User();
-        user.setLogin(DEFAULT_LOGIN);
+        assertThatThrownBy(() -> userService.registerUser(registro("ANA.servicio", "otra@example.com"))).isInstanceOf(
+            UsernameAlreadyUsedException.class
+        );
+    }
+
+    @Test
+    void rechazaUnEmailRepetidoSinImportarMayusculas() {
+        userService.registerUser(registro("ana.servicio", "ana.servicio@example.com"));
+
+        assertThatThrownBy(() -> userService.registerUser(registro("otra.servicio", "ANA.servicio@example.com"))).isInstanceOf(
+            EmailAlreadyUsedException.class
+        );
+    }
+
+    @Test
+    void registrarseConElLoginDeUnaCuentaDesactivadaNoLaReemplaza() {
+        User baja = usuarioGuardado("dada.de.baja", "dada.de.baja@example.com", false);
+
+        assertThatThrownBy(() -> userService.registerUser(registro("dada.de.baja", "nueva@example.com"))).isInstanceOf(
+            UsernameAlreadyUsedException.class
+        );
+        assertThatThrownBy(() -> userService.registerUser(registro("nueva", "dada.de.baja@example.com"))).isInstanceOf(
+            EmailAlreadyUsedException.class
+        );
+
+        User igual = userRepository.findOneByLogin("dada.de.baja").orElseThrow();
+        assertThat(igual.getId()).isEqualTo(baja.getId());
+        assertThat(igual.isActivated()).isFalse();
+        assertThat(igual.getEmail()).isEqualTo("dada.de.baja@example.com");
+    }
+
+    @Test
+    @WithMockUser("ana.servicio")
+    void cambiaLosDatosDeLaPropiaCuenta() {
+        usuarioGuardado("ana.servicio", "ana.servicio@example.com", true);
+
+        userService.updateAccount(new AccountUpdateDTO("Ana", "Quiroga", "Ana.Nueva@Example.com", "es", "http://placehold.it/50x50"));
+
+        User actualizado = userRepository.findOneByLogin("ana.servicio").orElseThrow();
+        assertThat(actualizado.getFirstName()).isEqualTo("Ana");
+        assertThat(actualizado.getLastName()).isEqualTo("Quiroga");
+        assertThat(actualizado.getEmail()).isEqualTo("ana.nueva@example.com");
+        assertThat(actualizado.getLangKey()).isEqualTo("es");
+        assertThat(actualizado.getImageUrl()).isEqualTo("http://placehold.it/50x50");
+    }
+
+    @Test
+    @WithMockUser("ana.servicio")
+    void noDejaUsarElEmailDeOtroUsuario() {
+        usuarioGuardado("ana.servicio", "ana.servicio@example.com", true);
+        usuarioGuardado("bruno.servicio", "bruno.servicio@example.com", true);
+
+        AccountUpdateDTO conEmailAjeno = new AccountUpdateDTO("Ana", "Quiroga", "BRUNO.servicio@example.com", "es", null);
+
+        assertThatThrownBy(() -> userService.updateAccount(conEmailAjeno)).isInstanceOf(EmailAlreadyUsedException.class);
+        assertThat(userRepository.findOneByLogin("ana.servicio").orElseThrow().getEmail()).isEqualTo("ana.servicio@example.com");
+    }
+
+    @Test
+    @WithMockUser("ana.servicio")
+    void cambiaLaContraseniaSoloSiLaActualCoincide() {
+        User ana = usuarioGuardado("ana.servicio", "ana.servicio@example.com", true);
+        ana.setPassword(passwordEncoder.encode("clave-actual"));
+        userRepository.saveAndFlush(ana);
+
+        assertThatThrownBy(() -> userService.changePassword("otra-clave", "clave-nueva")).isInstanceOf(InvalidPasswordException.class);
+        assertThat(
+            passwordEncoder.matches("clave-actual", userRepository.findOneByLogin("ana.servicio").orElseThrow().getPassword())
+        ).isTrue();
+
+        userService.changePassword("clave-actual", "clave-nueva");
+        assertThat(
+            passwordEncoder.matches("clave-nueva", userRepository.findOneByLogin("ana.servicio").orElseThrow().getPassword())
+        ).isTrue();
+    }
+
+    @Test
+    @WithMockUser("ya.no.existe")
+    void siElUsuarioDelTokenYaNoExisteNoCambiaNada() {
+        AccountUpdateDTO datos = new AccountUpdateDTO("Ana", "Quiroga", "ana@example.com", "es", null);
+
+        assertThatThrownBy(() -> userService.updateAccount(datos)).isInstanceOf(CurrentUserNotFoundException.class);
+        assertThatThrownBy(() -> userService.changePassword("a", "clave-nueva")).isInstanceOf(CurrentUserNotFoundException.class);
+    }
+
+    private static RegistrationDTO registro(String login, String email) {
+        return new RegistrationDTO(login, "clave-segura", "Ana", "Quiroga", email, null, "es");
+    }
+
+    private User usuarioGuardado(String login, String email, boolean activo) {
+        User user = new User();
+        user.setLogin(login);
+        user.setEmail(email);
         user.setPassword(RandomStringUtils.insecure().nextAlphanumeric(60));
-        user.setActivated(true);
-        user.setEmail(DEFAULT_EMAIL);
-        user.setFirstName(DEFAULT_FIRSTNAME);
-        user.setLastName(DEFAULT_LASTNAME);
-        user.setImageUrl(DEFAULT_IMAGEURL);
-        user.setLangKey(DEFAULT_LANGKEY);
-
-        when(dateTimeProvider.getNow()).thenReturn(Optional.of(LocalDateTime.now()));
-        auditingHandler.setDateTimeProvider(dateTimeProvider);
-    }
-
-    @AfterEach
-    void cleanupAndCheck() {
-        userService.deleteUser(DEFAULT_LOGIN);
-        assertThat(userRepository.count()).isEqualTo(numberOfUsers);
-        numberOfUsers = null;
-    }
-
-    @Test
-    @Transactional
-    void assertThatUserMustExistToResetPassword() {
-        userRepository.saveAndFlush(user);
-        Optional<User> maybeUser = userService.requestPasswordReset("invalid.login@localhost");
-        assertThat(maybeUser).isNotPresent();
-
-        maybeUser = userService.requestPasswordReset(user.getEmail());
-        assertThat(maybeUser).isPresent();
-        assertThat(maybeUser.orElse(null).getEmail()).isEqualTo(user.getEmail());
-        assertThat(maybeUser.orElse(null).getResetDate()).isNotNull();
-        assertThat(maybeUser.orElse(null).getResetKey()).isNotNull();
-    }
-
-    @Test
-    @Transactional
-    void assertThatOnlyActivatedUserCanRequestPasswordReset() {
-        user.setActivated(false);
-        userRepository.saveAndFlush(user);
-
-        Optional<User> maybeUser = userService.requestPasswordReset(user.getLogin());
-        assertThat(maybeUser).isNotPresent();
-        userRepository.delete(user);
-    }
-
-    @Test
-    @Transactional
-    void assertThatResetKeyMustNotBeOlderThan24Hours() {
-        Instant daysAgo = Instant.now().minus(25, ChronoUnit.HOURS);
-        String resetKey = RandomUtil.generateResetKey();
-        user.setActivated(true);
-        user.setResetDate(daysAgo);
-        user.setResetKey(resetKey);
-        userRepository.saveAndFlush(user);
-
-        Optional<User> maybeUser = userService.completePasswordReset("johndoe2", user.getResetKey());
-        assertThat(maybeUser).isNotPresent();
-        userRepository.delete(user);
-    }
-
-    @Test
-    @Transactional
-    void assertThatResetKeyMustBeValid() {
-        Instant daysAgo = Instant.now().minus(25, ChronoUnit.HOURS);
-        user.setActivated(true);
-        user.setResetDate(daysAgo);
-        user.setResetKey("1234");
-        userRepository.saveAndFlush(user);
-
-        Optional<User> maybeUser = userService.completePasswordReset("johndoe2", user.getResetKey());
-        assertThat(maybeUser).isNotPresent();
-        userRepository.delete(user);
-    }
-
-    @Test
-    @Transactional
-    void assertThatUserCanResetPassword() {
-        String oldPassword = user.getPassword();
-        Instant daysAgo = Instant.now().minus(2, ChronoUnit.HOURS);
-        String resetKey = RandomUtil.generateResetKey();
-        user.setActivated(true);
-        user.setResetDate(daysAgo);
-        user.setResetKey(resetKey);
-        userRepository.saveAndFlush(user);
-
-        Optional<User> maybeUser = userService.completePasswordReset("johndoe2", user.getResetKey());
-        assertThat(maybeUser).isPresent();
-        assertThat(maybeUser.orElse(null).getResetDate()).isNull();
-        assertThat(maybeUser.orElse(null).getResetKey()).isNull();
-        assertThat(maybeUser.orElse(null).getPassword()).isNotEqualTo(oldPassword);
-
-        userRepository.delete(user);
-    }
-
-    @Test
-    @Transactional
-    void assertThatNotActivatedUsersWithNotNullActivationKeyCreatedBefore3DaysAreDeleted() {
-        Instant now = Instant.now();
-        when(dateTimeProvider.getNow()).thenReturn(Optional.of(now.minus(4, ChronoUnit.DAYS)));
-        user.setActivated(false);
-        // nextAlphanumeric y no next: next puede generar el carácter 0x00, que PostgreSQL no acepta en un texto
-        user.setActivationKey(RandomStringUtils.insecure().nextAlphanumeric(20));
-        User dbUser = userRepository.saveAndFlush(user);
-        dbUser.setCreatedDate(now.minus(4, ChronoUnit.DAYS));
-        userRepository.saveAndFlush(user);
-        Instant threeDaysAgo = now.minus(3, ChronoUnit.DAYS);
-        List<User> users = userRepository.findAllByActivatedIsFalseAndActivationKeyIsNotNullAndCreatedDateBefore(threeDaysAgo);
-        assertThat(users).isNotEmpty();
-        userService.removeNotActivatedUsers();
-        users = userRepository.findAllByActivatedIsFalseAndActivationKeyIsNotNullAndCreatedDateBefore(threeDaysAgo);
-        assertThat(users).isEmpty();
-    }
-
-    @Test
-    @Transactional
-    void assertThatNotActivatedUsersWithNullActivationKeyCreatedBefore3DaysAreNotDeleted() {
-        Instant now = Instant.now();
-        when(dateTimeProvider.getNow()).thenReturn(Optional.of(now.minus(4, ChronoUnit.DAYS)));
-        user.setActivated(false);
-        User dbUser = userRepository.saveAndFlush(user);
-        dbUser.setCreatedDate(now.minus(4, ChronoUnit.DAYS));
-        userRepository.saveAndFlush(user);
-        Instant threeDaysAgo = now.minus(3, ChronoUnit.DAYS);
-        List<User> users = userRepository.findAllByActivatedIsFalseAndActivationKeyIsNotNullAndCreatedDateBefore(threeDaysAgo);
-        assertThat(users).isEmpty();
-        userService.removeNotActivatedUsers();
-        Optional<User> maybeDbUser = userRepository.findById(dbUser.getId());
-        assertThat(maybeDbUser).contains(dbUser);
+        user.setActivated(activo);
+        return userRepository.saveAndFlush(user);
     }
 }

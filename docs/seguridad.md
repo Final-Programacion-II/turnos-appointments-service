@@ -11,6 +11,13 @@ dice qué se hace y dónde está.
   logs. Los hashes viejos en bcrypt se migran solos en el primer login (decisiones, punto 6).
 - El registro valida los datos con las mismas reglas que JHipster. El cliente no puede elegir
   el id, el estado de activación ni los roles: los asigna el backend.
+- Un login o un email que ya existen se rechazan siempre. JHipster, si la cuenta existente
+  estaba desactivada, la borraba y la reemplazaba por la nueva: con eso cualquiera podía
+  registrarse como `admin` en producción, donde ese usuario está desactivado.
+- Solo quedan los endpoints de usuarios que el sistema usa: registro, login, ver y editar la
+  propia cuenta y cambiar la contraseña. Se sacaron la activación por mail, la recuperación de
+  contraseña, la administración de usuarios (`/api/admin/users`), la lista de roles y la lista
+  pública de usuarios (`/api/users`), que le mostraba a cualquier usuario los logins de los demás.
 - JHipster carga los usuarios de ejemplo `admin/admin` y `user/user` en todas las bases. Sus
   contraseñas son públicas, así que en producción (perfil `prod`, el que usa Docker) un
   changeset los desactiva y no pueden iniciar sesión
@@ -93,4 +100,6 @@ directamente.
 ## Rol administrador
 
 No se implementó el rol administrador opcional (sección 9). El rol `ADMIN` de JHipster
-existe, pero en producción ningún usuario activo lo tiene.
+existe, pero en producción ningún usuario activo lo tiene, y ya no hay endpoints de
+administración de usuarios. Las rutas `/api/admin/**` siguen reservadas a ese rol por si se
+agrega alguna.

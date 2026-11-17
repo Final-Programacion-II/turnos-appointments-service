@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import ar.edu.um.turnos.appointments.IntegrationTest;
 import ar.edu.um.turnos.appointments.domain.User;
 import ar.edu.um.turnos.appointments.repository.UserRepository;
-import ar.edu.um.turnos.appointments.service.UserService;
+import java.util.List;
 import java.util.Locale;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -34,9 +34,6 @@ class DomainUserDetailsServiceIT {
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private UserService userService;
 
     @Autowired
     @Qualifier("userDetailsService")
@@ -87,9 +84,9 @@ class DomainUserDetailsServiceIT {
 
     @AfterEach
     void cleanup() {
-        userService.deleteUser(USER_ONE_LOGIN);
-        userService.deleteUser(USER_TWO_LOGIN);
-        userService.deleteUser(USER_THREE_LOGIN);
+        for (String login : List.of(USER_ONE_LOGIN, USER_TWO_LOGIN, USER_THREE_LOGIN)) {
+            userRepository.findOneByLogin(login).ifPresent(userRepository::delete);
+        }
     }
 
     @Test
