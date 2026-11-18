@@ -4,9 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import ar.edu.um.turnos.appointments.IntegrationTest;
-import ar.edu.um.turnos.appointments.domain.Authority;
-import ar.edu.um.turnos.appointments.domain.User;
 import ar.edu.um.turnos.appointments.repository.UserRepository;
+import ar.edu.um.turnos.appointments.repository.entity.Authority;
+import ar.edu.um.turnos.appointments.repository.entity.User;
 import ar.edu.um.turnos.appointments.security.AuthoritiesConstants;
 import ar.edu.um.turnos.appointments.service.dto.AccountUpdateDTO;
 import ar.edu.um.turnos.appointments.service.dto.RegistrationDTO;

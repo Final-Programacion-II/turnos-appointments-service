@@ -124,4 +124,5 @@ Los adaptadores de entrada (REST, Kafka y scheduler) dependen de los puertos de 
 de las clases de `application`.
 
 El resto del servicio (usuarios, login y configuración) es la estructura por capas que genera
-JHipster.
+JHipster. Sus entidades JPA (`User` y `Authority`) están en `repository.entity`: son
+modelo de persistencia, no dominio.

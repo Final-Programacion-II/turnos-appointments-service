@@ -130,6 +130,16 @@ docker compose -f docker/compose.yml up -d appointments
 Es la misma señal que manda `docker stop`, así que el servicio se apaga ordenadamente. Si el
 contenedor queda en `Created`, el `up -d` lo arranca.
 
+**Los tests de integración fallan todos con `Could not find a valid Docker environment`**,
+aunque `docker ps` funcione. Pasa con Docker 29: no acepta clientes que hablen una versión de
+su API anterior a la 1.40, y Testcontainers usa por defecto una más vieja. Docker le contesta
+`client version 1.32 is too old` en cada intento, hasta que Testcontainers se rinde. Se
+resuelve indicándole qué versión usar, en un archivo del usuario (no del repositorio):
+
+```bash
+echo "api.version=1.44" > ~/.docker-java.properties
+```
+
 ## Prueba (6/11)
 
 - Los cuatro contenedores quedaron `healthy` en menos de un minuto.

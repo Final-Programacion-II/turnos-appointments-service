@@ -10,8 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import ar.edu.um.turnos.appointments.IntegrationTest;
-import ar.edu.um.turnos.appointments.domain.User;
 import ar.edu.um.turnos.appointments.repository.UserRepository;
+import ar.edu.um.turnos.appointments.repository.entity.User;
 import ar.edu.um.turnos.appointments.web.rest.vm.LoginVM;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
