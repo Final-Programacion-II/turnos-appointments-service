@@ -1,9 +1,9 @@
 package ar.edu.um.turnos.appointments.service;
 
-import ar.edu.um.turnos.appointments.domain.Authority;
-import ar.edu.um.turnos.appointments.domain.User;
 import ar.edu.um.turnos.appointments.repository.AuthorityRepository;
 import ar.edu.um.turnos.appointments.repository.UserRepository;
+import ar.edu.um.turnos.appointments.repository.entity.Authority;
+import ar.edu.um.turnos.appointments.repository.entity.User;
 import ar.edu.um.turnos.appointments.security.AuthoritiesConstants;
 import ar.edu.um.turnos.appointments.security.SecurityUtils;
 import ar.edu.um.turnos.appointments.service.dto.AccountUpdateDTO;

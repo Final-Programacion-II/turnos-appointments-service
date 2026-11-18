@@ -214,3 +214,16 @@ enunciado). Lo demás quedaba sin usar, sin servidor de mail y con endpoints pú
   rutas que quedan tampoco cambian.
 - Descartado: dejar la recuperación de contraseña. El enunciado la marca como opcional y sin
   servidor de mail no se puede completar.
+
+## 15. Las entidades JPA salen del paquete `domain`
+
+JHipster deja `User` y `Authority` en un paquete `domain`. El nombre confunde: tienen
+anotaciones de JPA, Jackson y validación, así que no son un dominio independiente del
+framework.
+
+- Decisión: pasan a `repository.entity`, junto a sus repositorios. Son modelo de persistencia.
+- El único paquete `domain` que queda es `reservation.domain`, que es Java puro
+  (`ReservationArchitectureTest` lo verifica).
+- Se hace recién ahora, después del punto 14: antes, los getters de `User` estaban repetidos
+  en el DTO de administración, y mover el archivo hacía que el control de calidad contara esa
+  duplicación vieja como código nuevo.

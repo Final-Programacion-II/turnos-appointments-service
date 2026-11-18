@@ -9,9 +9,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import ar.edu.um.turnos.appointments.IntegrationTest;
 import ar.edu.um.turnos.appointments.config.Constants;
-import ar.edu.um.turnos.appointments.domain.User;
 import ar.edu.um.turnos.appointments.repository.AuthorityRepository;
 import ar.edu.um.turnos.appointments.repository.UserRepository;
+import ar.edu.um.turnos.appointments.repository.entity.User;
 import ar.edu.um.turnos.appointments.security.AuthoritiesConstants;
 import ar.edu.um.turnos.appointments.service.dto.AccountUpdateDTO;
 import ar.edu.um.turnos.appointments.service.dto.PasswordChangeDTO;

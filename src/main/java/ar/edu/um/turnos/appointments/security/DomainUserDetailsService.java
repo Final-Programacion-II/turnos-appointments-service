@@ -1,8 +1,8 @@
 package ar.edu.um.turnos.appointments.security;
 
-import ar.edu.um.turnos.appointments.domain.Authority;
-import ar.edu.um.turnos.appointments.domain.User;
 import ar.edu.um.turnos.appointments.repository.UserRepository;
+import ar.edu.um.turnos.appointments.repository.entity.Authority;
+import ar.edu.um.turnos.appointments.repository.entity.User;
 import java.util.*;
 import org.hibernate.validator.internal.constraintvalidators.bv.EmailValidator;
 import org.slf4j.Logger;

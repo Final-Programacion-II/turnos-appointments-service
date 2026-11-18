@@ -1,6 +1,6 @@
-package ar.edu.um.turnos.appointments.domain;
+package ar.edu.um.turnos.appointments.repository.entity;
 
-import static ar.edu.um.turnos.appointments.domain.AuthorityTestSamples.*;
+import static ar.edu.um.turnos.appointments.repository.entity.AuthorityTestSamples.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import ar.edu.um.turnos.appointments.web.rest.TestUtil;

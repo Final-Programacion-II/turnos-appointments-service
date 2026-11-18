@@ -1,6 +1,6 @@
 package ar.edu.um.turnos.appointments.repository;
 
-import ar.edu.um.turnos.appointments.domain.User;
+import ar.edu.um.turnos.appointments.repository.entity.User;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,6 +1,6 @@
 package ar.edu.um.turnos.appointments.repository;
 
-import ar.edu.um.turnos.appointments.domain.Authority;
+import ar.edu.um.turnos.appointments.repository.entity.Authority;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.stereotype.Repository;
 

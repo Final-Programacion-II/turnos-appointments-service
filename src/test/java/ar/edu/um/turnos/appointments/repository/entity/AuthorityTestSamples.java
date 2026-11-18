@@ -1,4 +1,4 @@
-package ar.edu.um.turnos.appointments.domain;
+package ar.edu.um.turnos.appointments.repository.entity;
 
 import java.util.UUID;
 

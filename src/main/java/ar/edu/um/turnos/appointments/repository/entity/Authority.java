@@ -1,4 +1,4 @@
-package ar.edu.um.turnos.appointments.domain;
+package ar.edu.um.turnos.appointments.repository.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;

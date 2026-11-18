@@ -1,7 +1,7 @@
 package ar.edu.um.turnos.appointments.service.dto;
 
-import ar.edu.um.turnos.appointments.domain.Authority;
-import ar.edu.um.turnos.appointments.domain.User;
+import ar.edu.um.turnos.appointments.repository.entity.Authority;
+import ar.edu.um.turnos.appointments.repository.entity.User;
 import java.time.Instant;
 import java.util.Set;
 import java.util.stream.Collectors;

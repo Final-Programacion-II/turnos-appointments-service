@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import ar.edu.um.turnos.appointments.IntegrationTest;
-import ar.edu.um.turnos.appointments.domain.User;
 import ar.edu.um.turnos.appointments.repository.UserRepository;
+import ar.edu.um.turnos.appointments.repository.entity.User;
 import java.util.List;
 import java.util.Locale;
 import org.apache.commons.lang3.RandomStringUtils;
