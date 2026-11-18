@@ -3,7 +3,7 @@
 
 > Documento **generado automáticamente** por la cátedra de Programación II (UM): RepoSense + análisis de calidad de **7 dimensiones**. **No editar a mano**: se regenera en cada evaluación.
 > Rama evaluada: `main`. Análisis **heurístico** (regex + métricas) + build: es una criba para orientar la revisión, **no una nota**. La **documentación** del repositorio no se evalúa.
-> Generado: 2026-11-17.
+> Generado: 2026-11-18.
 
 ## 1. Veredicto
 
@@ -42,7 +42,7 @@ Criterios de la cátedra (`CRITERIOS-CALIDAD.md`): **Aprobar** se juega con el p
 
 | Autor | Commits | Código (LOC) | Tests (LOC) | Docs (LOC) | Días activos | % del código |
 |---|---:|---:|---:|---:|---:|---:|
-| Facundo Mangione | 16 | 5,384 | 5,242 | 2,480 | 16 | 100% |
+| Facundo Mangione | 16 | 5,384 | 5,242 | 2,479 | 16 | 100% |
 
 > _El LOC de autoría lo calcula RepoSense sobre el historial y puede diferir del LOC de código del análisis (que mira el estado de `main`)._
 
@@ -106,159 +106,198 @@ Cada dimensión indica **qué mide**, **por qué importa** y **tu resultado**. C
 
 ## 5. Señales detectadas
 
-El análisis encontró las siguientes señales (archivo, sin número de línea a propósito):
+El análisis encontró las siguientes señales, con el archivo y la línea donde se originan cuando están disponibles:
 
-**SRP/responsabilidad** (45)
-- clase 'AppointmentsApp' grande (LOC=80, métodos=10, campos=2) — `src/main/java/ar/edu/um/turnos/appointments/AppointmentsApp.java`
-- método 'AppointmentsApp.logApplicationStartup' de 35 líneas — `src/main/java/ar/edu/um/turnos/appointments/AppointmentsApp.java`
-- clase 'DomainUserDetailsService' grande (LOC=68, métodos=10, campos=3) — `src/main/java/ar/edu/um/turnos/appointments/security/DomainUserDetailsService.java`
-- clase 'DomainUserDetailsService' con baja cohesión (16%) — `src/main/java/ar/edu/um/turnos/appointments/security/DomainUserDetailsService.java`
-- clase 'SecurityUtils' grande (LOC=96, métodos=12, campos=3) — `src/main/java/ar/edu/um/turnos/appointments/security/SecurityUtils.java`
-- clase 'SecurityUtils' con baja cohesión (2%) — `src/main/java/ar/edu/um/turnos/appointments/security/SecurityUtils.java`
-- clase 'LoggingAspect' grande (LOC=89, métodos=11, campos=1) — `src/main/java/ar/edu/um/turnos/appointments/aop/logging/LoggingAspect.java`
-- método 'ManageReservationsUseCase.StartReservation' con 5 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/ports/in/ManageReservationsUseCase.java`
-- método 'StartReservation.StartReservation' con 5 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/ports/in/ManageReservationsUseCase.java`
-- método 'CatedraProperties.CatedraProperties' de 31 líneas — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraProperties.java`
-- clase 'CatedraHoldAdapter' con baja cohesión (14%) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraHoldAdapter.java`
-- clase 'CatedraAppointmentsAdapter' grande (LOC=65, métodos=12, campos=5) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraAppointmentsAdapter.java`
-- clase 'CatedraAppointmentsAdapter' con baja cohesión (20%) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraAppointmentsAdapter.java`
-- método 'CatedraActionsListener.onAction' de 38 líneas — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/kafka/CatedraActionsListener.java`
-- método 'CatedraActionsListener.onAction' con complejidad 7 — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/kafka/CatedraActionsListener.java`
-- método 'AgendaResponse.ScheduleResponse' con 5 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catalog/AgendaResponse.java`
-- método 'ScheduleResponse.ScheduleResponse' con 5 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catalog/AgendaResponse.java`
-- clase 'ReservationResource' grande (LOC=145, métodos=10, campos=2) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationResource.java`
-- clase 'ReservationExceptionHandler' grande (LOC=55, métodos=10, campos=1) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationExceptionHandler.java`
-- método 'CatedraEventService.apply' con complejidad 7 — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/CatedraEventService.java`
-- clase 'ReservationService' grande (LOC=157, métodos=10, campos=6) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/ReservationService.java`
-- clase 'ReservationService' con baja cohesión (47%) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/ReservationService.java`
-- método 'ReservationService.start' de 33 líneas — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/ReservationService.java`
-- clase 'ReconciliationService' con baja cohesión (40%) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/ReconciliationService.java`
-- clase 'ReservationProcess' grande (LOC=287, métodos=31, campos=15) — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/ReservationProcess.java`
-- clase 'ReservationProcess' con baja cohesión (14%) — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/ReservationProcess.java`
-- método 'Availability.of' de 31 líneas — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/Availability.java`
-- método 'Availability.of' con complejidad 6 — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/Availability.java`
-- método 'ProfessionalAgenda.Schedule' con 5 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/ProfessionalAgenda.java`
-- método 'Schedule.Schedule' con 5 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/ProfessionalAgenda.java`
-- clase 'SecurityMetersService' grande (LOC=35, métodos=7, campos=8) — `src/main/java/ar/edu/um/turnos/appointments/management/SecurityMetersService.java`
-- clase 'SecurityMetersService' con baja cohesión (33%) — `src/main/java/ar/edu/um/turnos/appointments/management/SecurityMetersService.java`
-- clase 'Authority' grande (LOC=64, métodos=10, campos=3) — `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java`
-- clase 'Authority' con baja cohesión (24%) — `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java`
-- clase 'AbstractAuditingEntity' con baja cohesión (14%) — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java`
-- clase 'User' grande (LOC=137, métodos=23, campos=11) — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java`
-- clase 'User' con baja cohesión (10%) — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java`
-- clase 'AuthenticateController' con baja cohesión (14%) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/AuthenticateController.java`
-- clase 'ErrorConstants' grande (LOC=11, métodos=1, campos=8) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ErrorConstants.java`
-- clase 'ExceptionTranslator' grande (LOC=210, métodos=24, campos=7) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ExceptionTranslator.java`
-- clase 'ExceptionTranslator' con baja cohesión (0%) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ExceptionTranslator.java`
-- método 'ExceptionTranslator.customizeProblem' con complejidad 9 — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ExceptionTranslator.java`
-- método 'ExceptionTranslator.getCustomizedErrorDetails' con complejidad 8 — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ExceptionTranslator.java`
-- método 'ExceptionTranslator.getMappedStatus' con complejidad 6 — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ExceptionTranslator.java`
-- clase 'LoginVM' con baja cohesión (33%) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/vm/LoginVM.java`
+**Archivos con más señales**
+
+| Archivo | Señales |
+|---|---:|
+| `src/main/java/ar/edu/um/turnos/appointments/domain/User.java` | 11 |
+| `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java` | 10 |
+| `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationResource.java` | 9 |
+| `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ExceptionTranslator.java` | 9 |
+| `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/ReservationProcess.java` | 7 |
+| `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java` | 7 |
+| `src/main/java/ar/edu/um/turnos/appointments/reservation/application/ReservationService.java` | 6 |
+| `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/kafka/CatedraActionsListener.java` | 5 |
+| `src/main/java/ar/edu/um/turnos/appointments/security/SecurityUtils.java` | 4 |
+| `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/kafka/KafkaPhoneSubmissionPublisher.java` | 4 |
 
 **DIP/concretos** (58)
-- clase 'AppointmentsApp' muy acoplada (CBO=24) — `src/main/java/ar/edu/um/turnos/appointments/AppointmentsApp.java`
-- clase 'DomainUserDetailsService' muy acoplada (CBO=21) — `src/main/java/ar/edu/um/turnos/appointments/security/DomainUserDetailsService.java`
-- clase 'DomainUserDetailsService' instancia 5 concretos (CBO=21) — `src/main/java/ar/edu/um/turnos/appointments/security/DomainUserDetailsService.java`
-- clase 'SecurityUtils' muy acoplada (CBO=16) — `src/main/java/ar/edu/um/turnos/appointments/security/SecurityUtils.java`
-- clase 'LoggingAspect' muy acoplada (CBO=24) — `src/main/java/ar/edu/um/turnos/appointments/aop/logging/LoggingAspect.java`
-- clase 'ReservationProcessRepository' muy acoplada (CBO=20) — `src/main/java/ar/edu/um/turnos/appointments/reservation/ports/out/ReservationProcessRepository.java`
-- clase 'CatedraEvent' muy acoplada (CBO=13) — `src/main/java/ar/edu/um/turnos/appointments/reservation/ports/in/CatedraEvent.java`
-- clase 'Type' muy acoplada (CBO=12) — `src/main/java/ar/edu/um/turnos/appointments/reservation/ports/in/CatedraEvent.java`
-- clase 'ManageReservationsUseCase' muy acoplada (CBO=11) — `src/main/java/ar/edu/um/turnos/appointments/reservation/ports/in/ManageReservationsUseCase.java`
-- clase 'ReservationConfiguration' muy acoplada (CBO=19) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/ReservationConfiguration.java`
-- clase 'ReservationConfiguration' instancia 4 concretos (CBO=19) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/ReservationConfiguration.java`
-- clase 'CatedraProperties' muy acoplada (CBO=12) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraProperties.java`
-- clase 'CatedraHoldAdapter' muy acoplada (CBO=16) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraHoldAdapter.java`
-- clase 'CatedraHoldAdapter' instancia 3 concretos (CBO=16) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraHoldAdapter.java`
-- clase 'CatedraRestAdapter' muy acoplada (CBO=11) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraRestAdapter.java`
-- clase 'CatedraAppointmentsAdapter' muy acoplada (CBO=17) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraAppointmentsAdapter.java`
-- clase 'CatedraHttp' muy acoplada (CBO=14) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraHttp.java`
-- clase 'CatedraHttp' instancia 4 concretos (CBO=14) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraHttp.java`
-- clase 'CatedraActionsListener' muy acoplada (CBO=32) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/kafka/CatedraActionsListener.java`
-- clase 'KafkaPhoneSubmissionPublisher' muy acoplada (CBO=19) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/kafka/KafkaPhoneSubmissionPublisher.java`
-- clase 'KafkaPhoneSubmissionPublisher' instancia 5 concretos (CBO=19) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/kafka/KafkaPhoneSubmissionPublisher.java`
-- clase 'ReservationProcessJpaRepository' muy acoplada (CBO=15) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/persistence/ReservationProcessJpaRepository.java`
-- clase 'ReservationProcessEntity' muy acoplada (CBO=13) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/persistence/ReservationProcessEntity.java`
-- clase 'JpaReservationProcessRepository' muy acoplada (CBO=27) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/persistence/JpaReservationProcessRepository.java`
-- clase 'JpaReservationProcessRepository' instancia 7 concretos (CBO=27) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/persistence/JpaReservationProcessRepository.java`
-- clase 'CatalogRestAdapter' muy acoplada (CBO=19) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catalog/CatalogRestAdapter.java`
-- clase 'CatalogRestAdapter' instancia 5 concretos (CBO=19) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catalog/CatalogRestAdapter.java`
-- clase 'ReservationResource' muy acoplada (CBO=37) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationResource.java`
-- clase 'ReservationResource' instancia 3 concretos (CBO=37) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationResource.java`
-- clase 'ReservationExceptionHandler' muy acoplada (CBO=28) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationExceptionHandler.java`
-- clase 'CatedraEventService' muy acoplada (CBO=14) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/CatedraEventService.java`
-- clase 'ReservationService' muy acoplada (CBO=46) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/ReservationService.java`
-- clase 'ReservationService' instancia 4 concretos (CBO=46) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/ReservationService.java`
-- clase 'AvailabilityService' muy acoplada (CBO=11) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/AvailabilityService.java`
-- clase 'AvailabilityService' instancia 3 concretos (CBO=11) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/AvailabilityService.java`
-- clase 'ReconciliationService' muy acoplada (CBO=19) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/ReconciliationService.java`
-- clase 'ReservationProcess' muy acoplada (CBO=38) — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/ReservationProcess.java`
-- clase 'ReservationProcess' instancia 4 concretos (CBO=38) — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/ReservationProcess.java`
-- clase 'Availability' muy acoplada (CBO=10) — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/Availability.java`
-- clase 'ReservationStatus' muy acoplada (CBO=14) — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/ReservationStatus.java`
-- clase 'UserService' muy acoplada (CBO=25) — `src/main/java/ar/edu/um/turnos/appointments/service/UserService.java`
-- clase 'UserService' instancia 5 concretos (CBO=25) — `src/main/java/ar/edu/um/turnos/appointments/service/UserService.java`
-- clase 'WebConfigurer' muy acoplada (CBO=13) — `src/main/java/ar/edu/um/turnos/appointments/config/WebConfigurer.java`
-- clase 'LiquibaseConfiguration' muy acoplada (CBO=18) — `src/main/java/ar/edu/um/turnos/appointments/config/LiquibaseConfiguration.java`
-- clase 'CRLFLogConverter' muy acoplada (CBO=16) — `src/main/java/ar/edu/um/turnos/appointments/config/CRLFLogConverter.java`
-- clase 'SecurityJwtConfiguration' muy acoplada (CBO=19) — `src/main/java/ar/edu/um/turnos/appointments/config/SecurityJwtConfiguration.java`
-- clase 'SecurityConfiguration' muy acoplada (CBO=21) — `src/main/java/ar/edu/um/turnos/appointments/config/SecurityConfiguration.java`
-- clase 'SecurityConfiguration' instancia 5 concretos (CBO=21) — `src/main/java/ar/edu/um/turnos/appointments/config/SecurityConfiguration.java`
-- clase 'AsyncConfiguration' muy acoplada (CBO=12) — `src/main/java/ar/edu/um/turnos/appointments/config/AsyncConfiguration.java`
-- clase 'AsyncConfiguration' instancia 3 concretos (CBO=12) — `src/main/java/ar/edu/um/turnos/appointments/config/AsyncConfiguration.java`
-- clase 'User' muy acoplada (CBO=12) — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java`
-- clase 'AuthenticateController' muy acoplada (CBO=33) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/AuthenticateController.java`
-- clase 'AuthenticateController' instancia 3 concretos (CBO=33) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/AuthenticateController.java`
-- clase 'AccountResource' muy acoplada (CBO=19) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/AccountResource.java`
-- clase 'AccountResource' instancia 3 concretos (CBO=19) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/AccountResource.java`
-- clase 'BadRequestAlertException' muy acoplada (CBO=8) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/BadRequestAlertException.java`
-- clase 'ExceptionTranslator' muy acoplada (CBO=76) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ExceptionTranslator.java`
-- clase 'ExceptionTranslator' instancia 4 concretos (CBO=76) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ExceptionTranslator.java`
+- clase 'AppointmentsApp' muy acoplada (CBO=24) — `src/main/java/ar/edu/um/turnos/appointments/AppointmentsApp.java:24`
+- clase 'LoggingAspect' muy acoplada (CBO=24) — `src/main/java/ar/edu/um/turnos/appointments/aop/logging/LoggingAspect.java:22`
+- clase 'AsyncConfiguration' muy acoplada (CBO=12) — `src/main/java/ar/edu/um/turnos/appointments/config/AsyncConfiguration.java:22`
+- clase 'AsyncConfiguration' instancia 3 concretos (CBO=12) — `src/main/java/ar/edu/um/turnos/appointments/config/AsyncConfiguration.java:22`
+- clase 'CRLFLogConverter' muy acoplada (CBO=16) — `src/main/java/ar/edu/um/turnos/appointments/config/CRLFLogConverter.java:23`
+- clase 'LiquibaseConfiguration' muy acoplada (CBO=18) — `src/main/java/ar/edu/um/turnos/appointments/config/LiquibaseConfiguration.java:22`
+- clase 'SecurityConfiguration' muy acoplada (CBO=21) — `src/main/java/ar/edu/um/turnos/appointments/config/SecurityConfiguration.java:24`
+- clase 'SecurityConfiguration' instancia 5 concretos (CBO=21) — `src/main/java/ar/edu/um/turnos/appointments/config/SecurityConfiguration.java:24`
+- clase 'SecurityJwtConfiguration' muy acoplada (CBO=19) — `src/main/java/ar/edu/um/turnos/appointments/config/SecurityJwtConfiguration.java:21`
+- clase 'WebConfigurer' muy acoplada (CBO=13) — `src/main/java/ar/edu/um/turnos/appointments/config/WebConfigurer.java:21`
+- clase 'User' muy acoplada (CBO=12) — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:23`
+- clase 'AvailabilityService' muy acoplada (CBO=11) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/AvailabilityService.java:17`
+- clase 'AvailabilityService' instancia 3 concretos (CBO=11) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/AvailabilityService.java:17`
+- clase 'CatedraEventService' muy acoplada (CBO=14) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/CatedraEventService.java:19`
+- clase 'ReconciliationService' muy acoplada (CBO=19) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/ReconciliationService.java:27`
+- clase 'ReservationService' muy acoplada (CBO=46) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/ReservationService.java:33`
+- clase 'ReservationService' instancia 4 concretos (CBO=46) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/ReservationService.java:33`
+- clase 'Availability' muy acoplada (CBO=10) — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/Availability.java:18`
+- clase 'ReservationProcess' muy acoplada (CBO=38) — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/ReservationProcess.java:17`
+- clase 'ReservationProcess' instancia 4 concretos (CBO=38) — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/ReservationProcess.java:17`
+- clase 'ReservationStatus' muy acoplada (CBO=14) — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/ReservationStatus.java:7`
+- clase 'ReservationConfiguration' muy acoplada (CBO=19) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/ReservationConfiguration.java:27`
+- clase 'ReservationConfiguration' instancia 4 concretos (CBO=19) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/ReservationConfiguration.java:27`
+- clase 'CatalogRestAdapter' muy acoplada (CBO=19) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catalog/CatalogRestAdapter.java:23`
+- clase 'CatalogRestAdapter' instancia 5 concretos (CBO=19) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catalog/CatalogRestAdapter.java:23`
+- clase 'CatedraAppointmentsAdapter' muy acoplada (CBO=17) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraAppointmentsAdapter.java:26`
+- clase 'CatedraHoldAdapter' muy acoplada (CBO=16) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraHoldAdapter.java:20`
+- clase 'CatedraHoldAdapter' instancia 3 concretos (CBO=16) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraHoldAdapter.java:20`
+- clase 'CatedraHttp' muy acoplada (CBO=14) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraHttp.java:19`
+- clase 'CatedraHttp' instancia 4 concretos (CBO=14) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraHttp.java:19`
+- clase 'CatedraProperties' muy acoplada (CBO=12) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraProperties.java:13`
+- clase 'CatedraRestAdapter' muy acoplada (CBO=11) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraRestAdapter.java:17`
+- clase 'CatedraActionsListener' muy acoplada (CBO=32) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/kafka/CatedraActionsListener.java:26`
+- clase 'KafkaPhoneSubmissionPublisher' muy acoplada (CBO=19) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/kafka/KafkaPhoneSubmissionPublisher.java:20`
+- clase 'KafkaPhoneSubmissionPublisher' instancia 5 concretos (CBO=19) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/kafka/KafkaPhoneSubmissionPublisher.java:20`
+- clase 'JpaReservationProcessRepository' muy acoplada (CBO=27) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/persistence/JpaReservationProcessRepository.java:25`
+- clase 'JpaReservationProcessRepository' instancia 7 concretos (CBO=27) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/persistence/JpaReservationProcessRepository.java:25`
+- clase 'ReservationProcessEntity' muy acoplada (CBO=13) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/persistence/ReservationProcessEntity.java:25`
+- clase 'ReservationProcessJpaRepository' muy acoplada (CBO=15) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/persistence/ReservationProcessJpaRepository.java:16`
+- clase 'ReservationExceptionHandler' muy acoplada (CBO=28) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationExceptionHandler.java:27`
+- clase 'ReservationResource' muy acoplada (CBO=37) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationResource.java:39`
+- clase 'ReservationResource' instancia 3 concretos (CBO=37) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationResource.java:39`
+- clase 'CatedraEvent' muy acoplada (CBO=13) — `src/main/java/ar/edu/um/turnos/appointments/reservation/ports/in/CatedraEvent.java:9`
+- clase 'Type' muy acoplada (CBO=12) — `src/main/java/ar/edu/um/turnos/appointments/reservation/ports/in/CatedraEvent.java:18`
+- clase 'ManageReservationsUseCase' muy acoplada (CBO=11) — `src/main/java/ar/edu/um/turnos/appointments/reservation/ports/in/ManageReservationsUseCase.java:14`
+- clase 'ReservationProcessRepository' muy acoplada (CBO=20) — `src/main/java/ar/edu/um/turnos/appointments/reservation/ports/out/ReservationProcessRepository.java:14`
+- clase 'DomainUserDetailsService' muy acoplada (CBO=21) — `src/main/java/ar/edu/um/turnos/appointments/security/DomainUserDetailsService.java:23`
+- clase 'DomainUserDetailsService' instancia 5 concretos (CBO=21) — `src/main/java/ar/edu/um/turnos/appointments/security/DomainUserDetailsService.java:23`
+- clase 'SecurityUtils' muy acoplada (CBO=16) — `src/main/java/ar/edu/um/turnos/appointments/security/SecurityUtils.java:18`
+- clase 'UserService' muy acoplada (CBO=25) — `src/main/java/ar/edu/um/turnos/appointments/service/UserService.java:27`
+- clase 'UserService' instancia 5 concretos (CBO=25) — `src/main/java/ar/edu/um/turnos/appointments/service/UserService.java:27`
+- clase 'AccountResource' muy acoplada (CBO=19) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/AccountResource.java:26`
+- clase 'AccountResource' instancia 3 concretos (CBO=19) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/AccountResource.java:26`
+- clase 'AuthenticateController' muy acoplada (CBO=33) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/AuthenticateController.java:37`
+- clase 'AuthenticateController' instancia 3 concretos (CBO=33) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/AuthenticateController.java:37`
+- clase 'BadRequestAlertException' muy acoplada (CBO=8) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/BadRequestAlertException.java:11`
+- clase 'ExceptionTranslator' muy acoplada (CBO=76) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ExceptionTranslator.java:51`
+- clase 'ExceptionTranslator' instancia 4 concretos (CBO=76) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ExceptionTranslator.java:51`
+
+**SRP/responsabilidad** (69)
+- método 'AppointmentsApp.logApplicationStartup' de 35 líneas — `src/main/java/ar/edu/um/turnos/appointments/AppointmentsApp.java:74`
+- clase 'LoggingAspect' grande (LOC=89, métodos=12, campos=1) — `src/main/java/ar/edu/um/turnos/appointments/aop/logging/LoggingAspect.java:22`
+- método 'LiquibaseConfiguration.liquibase' de 50 líneas — `src/main/java/ar/edu/um/turnos/appointments/config/LiquibaseConfiguration.java:33`
+- clase 'AbstractAuditingEntity' con baja cohesión (14%) — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java:23`
+- clase 'Authority' grande (LOC=64, métodos=10, campos=3) — `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java:18`
+- clase 'Authority' con baja cohesión (24%) — `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java:18`
+- clase 'User' grande (LOC=137, métodos=23, campos=11) — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:23`
+- clase 'User' con baja cohesión (10%) — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:23`
+- clase 'SecurityMetersService' grande (LOC=35, métodos=6, campos=8) — `src/main/java/ar/edu/um/turnos/appointments/management/SecurityMetersService.java:8`
+- clase 'SecurityMetersService' con baja cohesión (27%) — `src/main/java/ar/edu/um/turnos/appointments/management/SecurityMetersService.java:8`
+- método 'CatedraEventService.apply' con complejidad 7 — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/CatedraEventService.java:35`
+- clase 'ReservationService' grande (LOC=157, métodos=10, campos=6) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/ReservationService.java:33`
+- clase 'ReservationService' con baja cohesión (49%) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/ReservationService.java:33`
+- método 'ReservationService.ReservationService' con 6 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/ReservationService.java:42`
+- método 'ReservationService.start' de 33 líneas — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/ReservationService.java:64`
+- método 'Appointment.Appointment' con 7 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/Appointment.java:13`
+- método 'Availability.of' de 31 líneas — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/Availability.java:22`
+- método 'Availability.of' con complejidad 6 — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/Availability.java:22`
+- método 'ProfessionalAgenda.ProfessionalAgenda' con 8 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/ProfessionalAgenda.java:11`
+- método 'ProfessionalAgenda.Schedule' con 5 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/ProfessionalAgenda.java:25`
+- método 'Schedule.Schedule' con 5 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/ProfessionalAgenda.java:25`
+- clase 'ReservationProcess' grande (LOC=287, métodos=33, campos=15) — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/ReservationProcess.java:17`
+- clase 'ReservationProcess' con baja cohesión (19%) — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/ReservationProcess.java:17`
+- método 'ReservationProcess.ReservationProcess' de 31 líneas — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/ReservationProcess.java:40`
+- método 'ReservationProcess.ReservationProcess' con 14 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/ReservationProcess.java:40`
+- método 'ReservationProcess.held' con 7 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/ReservationProcess.java:75`
+- método 'ReservationConfiguration.reservationService' con 6 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/ReservationConfiguration.java:44`
+- método 'AgendaResponse.AgendaResponse' con 8 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catalog/AgendaResponse.java:12`
+- método 'AgendaResponse.ScheduleResponse' con 5 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catalog/AgendaResponse.java:22`
+- método 'ScheduleResponse.ScheduleResponse' con 5 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catalog/AgendaResponse.java:22`
+- clase 'CatedraAppointmentsAdapter' grande (LOC=65, métodos=12, campos=5) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraAppointmentsAdapter.java:26`
+- clase 'CatedraAppointmentsAdapter' con baja cohesión (24%) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraAppointmentsAdapter.java:26`
+- clase 'CatedraHoldAdapter' con baja cohesión (14%) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraHoldAdapter.java:20`
+- método 'CatedraProperties.CatedraProperties' de 31 líneas — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraProperties.java:13`
+- método 'CatedraActionsListener.onAction' de 38 líneas — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/kafka/CatedraActionsListener.java:61`
+- método 'CatedraActionsListener.onAction' con complejidad 7 — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/kafka/CatedraActionsListener.java:61`
+- método 'CatedraActionsListener.ActionMessage' con 7 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/kafka/CatedraActionsListener.java:105`
+- método 'ActionMessage.ActionMessage' con 7 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/kafka/CatedraActionsListener.java:105`
+- método 'KafkaPhoneSubmissionPublisher.SubmittedMessage' con 9 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/kafka/KafkaPhoneSubmissionPublisher.java:68`
+- método 'SubmittedMessage.SubmittedMessage' con 9 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/kafka/KafkaPhoneSubmissionPublisher.java:68`
+- método 'AvailabilityResource.AvailabilityDTO' con 6 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/AvailabilityResource.java:44`
+- método 'AvailabilityDTO.AvailabilityDTO' con 6 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/AvailabilityResource.java:44`
+- clase 'ReservationExceptionHandler' grande (LOC=55, métodos=10, campos=1) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationExceptionHandler.java:27`
+- clase 'ReservationResource' grande (LOC=145, métodos=13, campos=2) — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationResource.java:39`
+- método 'ReservationResource.StartReservationRequest' con 5 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationResource.java:140`
+- método 'StartReservationRequest.StartReservationRequest' con 5 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationResource.java:140`
+- método 'ReservationResource.ReservationDTO' de 33 líneas — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationResource.java:164`
+- método 'ReservationResource.ReservationDTO' con 13 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationResource.java:164`
+- método 'ReservationDTO.ReservationDTO' de 33 líneas — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationResource.java:164`
+- método 'ReservationDTO.ReservationDTO' con 13 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationResource.java:164`
+- método 'CatedraEvent.CatedraEvent' con 7 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/ports/in/CatedraEvent.java:9`
+- método 'ManageReservationsUseCase.StartReservation' con 5 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/ports/in/ManageReservationsUseCase.java:45`
+- método 'StartReservation.StartReservation' con 5 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/ports/in/ManageReservationsUseCase.java:45`
+- método 'PhoneSubmissionPublisher.PhoneSubmission' con 6 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/ports/out/PhoneSubmissionPublisher.java:16`
+- método 'PhoneSubmission.PhoneSubmission' con 6 parámetros — `src/main/java/ar/edu/um/turnos/appointments/reservation/ports/out/PhoneSubmissionPublisher.java:16`
+- clase 'DomainUserDetailsService' con baja cohesión (11%) — `src/main/java/ar/edu/um/turnos/appointments/security/DomainUserDetailsService.java:23`
+- clase 'SecurityUtils' grande (LOC=96, métodos=11, campos=3) — `src/main/java/ar/edu/um/turnos/appointments/security/SecurityUtils.java:18`
+- clase 'SecurityUtils' con baja cohesión (0%) — `src/main/java/ar/edu/um/turnos/appointments/security/SecurityUtils.java:18`
+- método 'AccountDTO.AccountDTO' de 33 líneas — `src/main/java/ar/edu/um/turnos/appointments/service/dto/AccountDTO.java:13`
+- método 'AccountDTO.AccountDTO' con 13 parámetros — `src/main/java/ar/edu/um/turnos/appointments/service/dto/AccountDTO.java:13`
+- clase 'AuthenticateController' con baja cohesión (24%) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/AuthenticateController.java:37`
+- clase 'ErrorConstants' grande (LOC=11, métodos=1, campos=8) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ErrorConstants.java:5`
+- clase 'ExceptionTranslator' grande (LOC=210, métodos=24, campos=7) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ExceptionTranslator.java:51`
+- clase 'ExceptionTranslator' con baja cohesión (0%) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ExceptionTranslator.java:51`
+- método 'ExceptionTranslator.handleExceptionInternal' con 5 parámetros — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ExceptionTranslator.java:79`
+- método 'ExceptionTranslator.customizeProblem' con complejidad 9 — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ExceptionTranslator.java:111`
+- método 'ExceptionTranslator.getCustomizedErrorDetails' con complejidad 8 — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ExceptionTranslator.java:216`
+- método 'ExceptionTranslator.getMappedStatus' con complejidad 6 — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ExceptionTranslator.java:237`
+- clase 'LoginVM' con baja cohesión (33%) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/vm/LoginVM.java:9`
 
 **OCP/type-switch** (5)
-- clase 'SecurityUtils' con 6 type-checks — `src/main/java/ar/edu/um/turnos/appointments/security/SecurityUtils.java`
-- clase 'Authority' con 1 type-checks — `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java`
-- clase 'User' con 1 type-checks — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java`
-- clase 'AuthenticateController' con 1 type-checks — `src/main/java/ar/edu/um/turnos/appointments/web/rest/AuthenticateController.java`
-- clase 'ExceptionTranslator' con 26 type-checks — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ExceptionTranslator.java`
+- clase 'Authority' con 1 type-checks — `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java:18`
+- clase 'User' con 1 type-checks — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:23`
+- clase 'SecurityUtils' con 6 type-checks — `src/main/java/ar/edu/um/turnos/appointments/security/SecurityUtils.java:18`
+- clase 'AuthenticateController' con 1 type-checks — `src/main/java/ar/edu/um/turnos/appointments/web/rest/AuthenticateController.java:37`
+- clase 'ExceptionTranslator' con 26 type-checks — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ExceptionTranslator.java:51`
 
 **POO** (2)
-- clase 'SecurityMetersService' con 4 campos públicos (encapsulación) — `src/main/java/ar/edu/um/turnos/appointments/management/SecurityMetersService.java`
-- clase 'ErrorConstants' con 8 campos públicos (encapsulación) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ErrorConstants.java`
+- clase 'SecurityMetersService' con 4 campos públicos (encapsulación) — `src/main/java/ar/edu/um/turnos/appointments/management/SecurityMetersService.java:8`
+- clase 'ErrorConstants' con 8 campos públicos (encapsulación) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ErrorConstants.java:5`
 
 **?** (2)
-- clase 'LoginAlreadyUsedException' con herencia profunda (DIT=2) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/LoginAlreadyUsedException.java`
-- clase 'EmailAlreadyUsedException' con herencia profunda (DIT=2) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/EmailAlreadyUsedException.java`
+- clase 'EmailAlreadyUsedException' con herencia profunda (DIT=2) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/EmailAlreadyUsedException.java:6`
+- clase 'LoginAlreadyUsedException' con herencia profunda (DIT=2) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/LoginAlreadyUsedException.java:6`
 
 **duplicación** (6)
 - duplicación lógica: 2.3% · boilerplate: 0.7%
-- bloque de 8 líneas repetido 3 veces en src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationIT.java:107, src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/AvailabilityIT.java:105, src/test/java/ar/edu/um/turnos/appointments/reservation/application/ReservationServiceTest.java:325 — `src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationIT.java`
-- bloque de 8 líneas repetido 3 veces en src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraAppointmentsAdapterTest.java:119, src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraRestAdapterTest.java:80, src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catalog/CatalogRestAdapterTest.java:101 — `src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraAppointmentsAdapterTest.java`
-- bloque de 8 líneas repetido 3 veces en src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraAppointmentsAdapterTest.java:120, src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraRestAdapterTest.java:81, src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catalog/CatalogRestAdapterTest.java:102 — `src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraAppointmentsAdapterTest.java`
-- bloque de 8 líneas repetido 2 veces en src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/AvailabilityIT.java:107, src/test/java/ar/edu/um/turnos/appointments/reservation/application/ReservationServiceTest.java:327 — `src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/AvailabilityIT.java`
-- bloque de 8 líneas repetido 2 veces en src/test/java/ar/edu/um/turnos/appointments/reservation/application/CatedraEventServiceTest.java:34, src/test/java/ar/edu/um/turnos/appointments/reservation/domain/ReservationProcessTest.java:233 — `src/test/java/ar/edu/um/turnos/appointments/reservation/application/CatedraEventServiceTest.java`
+- bloque de 8 líneas repetido 2 veces en src/test/java/ar/edu/um/turnos/appointments/reservation/application/CatedraEventServiceTest.java:34, src/test/java/ar/edu/um/turnos/appointments/reservation/domain/ReservationProcessTest.java:233 — `src/test/java/ar/edu/um/turnos/appointments/reservation/application/CatedraEventServiceTest.java:34`
+- bloque de 8 líneas repetido 3 veces en src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraAppointmentsAdapterTest.java:119, src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraRestAdapterTest.java:80, src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catalog/CatalogRestAdapterTest.java:101 — `src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraAppointmentsAdapterTest.java:119`
+- bloque de 8 líneas repetido 3 veces en src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraAppointmentsAdapterTest.java:120, src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraRestAdapterTest.java:81, src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catalog/CatalogRestAdapterTest.java:102 — `src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/catedra/CatedraAppointmentsAdapterTest.java:120`
+- bloque de 8 líneas repetido 2 veces en src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/AvailabilityIT.java:107, src/test/java/ar/edu/um/turnos/appointments/reservation/application/ReservationServiceTest.java:327 — `src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/AvailabilityIT.java:107`
+- bloque de 8 líneas repetido 3 veces en src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationIT.java:107, src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/AvailabilityIT.java:105, src/test/java/ar/edu/um/turnos/appointments/reservation/application/ReservationServiceTest.java:325 — `src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationIT.java:107`
 
 **hexagonal** (20)
-- domain importa framework/infra: import com.fasterxml.jackson.annotation.JsonIgnoreProperties; — `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java`
-- domain importa framework/infra: import jakarta.persistence.*; — `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java`
-- domain importa framework/infra: import jakarta.validation.constraints.*; — `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java`
-- domain importa framework/infra: import org.springframework.data.domain.Persistable; — `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java`
-- domain importa framework/infra: import com.fasterxml.jackson.annotation.JsonIgnoreProperties; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java`
-- domain importa framework/infra: import jakarta.persistence.Column; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java`
-- domain importa framework/infra: import jakarta.persistence.EntityListeners; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java`
-- domain importa framework/infra: import jakarta.persistence.MappedSuperclass; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java`
-- domain importa framework/infra: import org.springframework.data.annotation.CreatedBy; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java`
-- domain importa framework/infra: import org.springframework.data.annotation.CreatedDate; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java`
-- domain importa framework/infra: import org.springframework.data.annotation.LastModifiedBy; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java`
-- domain importa framework/infra: import org.springframework.data.annotation.LastModifiedDate; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java`
-- domain importa framework/infra: import org.springframework.data.jpa.domain.support.AuditingEntityListener; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java`
-- domain importa framework/infra: import com.fasterxml.jackson.annotation.JsonIgnore; — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java`
-- domain importa framework/infra: import jakarta.persistence.*; — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java`
-- domain importa framework/infra: import jakarta.validation.constraints.Email; — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java`
-- domain importa framework/infra: import jakarta.validation.constraints.NotNull; — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java`
-- domain importa framework/infra: import jakarta.validation.constraints.Pattern; — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java`
-- domain importa framework/infra: import jakarta.validation.constraints.Size; — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java`
-- domain importa framework/infra: import org.hibernate.annotations.BatchSize; — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java`
+- domain importa framework/infra: import com.fasterxml.jackson.annotation.JsonIgnoreProperties; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java:3`
+- domain importa framework/infra: import jakarta.persistence.Column; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java:4`
+- domain importa framework/infra: import jakarta.persistence.EntityListeners; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java:5`
+- domain importa framework/infra: import jakarta.persistence.MappedSuperclass; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java:6`
+- domain importa framework/infra: import org.springframework.data.annotation.CreatedBy; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java:10`
+- domain importa framework/infra: import org.springframework.data.annotation.CreatedDate; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java:11`
+- domain importa framework/infra: import org.springframework.data.annotation.LastModifiedBy; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java:12`
+- domain importa framework/infra: import org.springframework.data.annotation.LastModifiedDate; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java:13`
+- domain importa framework/infra: import org.springframework.data.jpa.domain.support.AuditingEntityListener; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java:14`
+- domain importa framework/infra: import com.fasterxml.jackson.annotation.JsonIgnoreProperties; — `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java:3`
+- domain importa framework/infra: import jakarta.persistence.*; — `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java:4`
+- domain importa framework/infra: import jakarta.validation.constraints.*; — `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java:5`
+- domain importa framework/infra: import org.springframework.data.domain.Persistable; — `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java:9`
+- domain importa framework/infra: import com.fasterxml.jackson.annotation.JsonIgnore; — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:4`
+- domain importa framework/infra: import jakarta.persistence.*; — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:5`
+- domain importa framework/infra: import jakarta.validation.constraints.Email; — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:6`
+- domain importa framework/infra: import jakarta.validation.constraints.NotNull; — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:7`
+- domain importa framework/infra: import jakarta.validation.constraints.Pattern; — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:8`
+- domain importa framework/infra: import jakarta.validation.constraints.Size; — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:9`
+- domain importa framework/infra: import org.hibernate.annotations.BatchSize; — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:16`
 
 ## 6. Evolución por commit
 
