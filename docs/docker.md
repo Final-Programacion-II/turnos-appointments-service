@@ -90,6 +90,24 @@ docker compose -f docker/compose.yml down                   # apaga, conserva lo
 docker compose -f docker/compose.yml down -v                # apaga y borra las bases
 ```
 
+## 5. Verificar el sistema completo
+
+`docker/verificar.sh` recorre todo el backend contra la cátedra real y marca cada chequeo como
+`OK` o `MAL`: salud de los servicios, separación de las bases, rechazo sin token, registro y
+login, sincronización y filtros del catálogo, disponibilidad, una reserva completa (hold,
+teléfono por Kafka y confirmación), acceso cruzado entre dos usuarios, mis reservas,
+cancelación e idempotencia.
+
+```bash
+bash docker/verificar.sh
+```
+
+Crea dos usuarios nuevos con contraseñas al azar y cancela la reserva al final. Tarda menos de
+un minuto, casi todo esperando los eventos de Kafka. Necesita `curl` y `python3`.
+
+El 19/11, con las imágenes de `main`, dio 42 OK y 0 MAL (versión 377 del catálogo, reserva
+1251 confirmada por Kafka y cancelada).
+
 ## Separación de datos
 
 - Cada servicio tiene su propio contenedor de PostgreSQL, con su usuario y su contraseña.

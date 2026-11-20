@@ -149,7 +149,7 @@ imágenes que genera Jib. El detalle está en [docker.md](docker.md).
 
 - Motivo: el enunciado pide levantar los dos backends y sus bases con Docker Compose. Va en
   el repo de turnos porque turnos es el que depende del catálogo; el catálogo se puede seguir
-  levantando solo con su propio `src/main/docker/app.yml`.
+  levantando solo con su propio `docker/compose.yml`.
 - Cada base está en una red interna propia y sin puertos publicados: la separación de datos
   no depende de la configuración de cada servicio, sino de que no existe la ruta.
 - Las subredes son fijas en `10.42.x`, porque la cátedra está en `172.17.201.1`, dentro del

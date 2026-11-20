@@ -31,9 +31,9 @@ dice qué se hace y dónde está.
 
 - Al iniciar sesión, turnos emite un JWT firmado con HS512. Dura 24 horas, o 30 días con
   "recordarme". Además del login y los roles, lleva el claim `userId`.
-- Todas las rutas bajo `/api/**` piden un JWT válido, salvo el registro, el login y la
-  recuperación de contraseña. De `/management` solo son públicos `health` e `info`.
-  Lo demás pide el rol `ADMIN`.
+- Todas las rutas bajo `/api/**` piden un JWT válido, salvo el registro y el login. De
+  `/management` son públicos `health`, `info` y `prometheus` (métricas, sin datos de
+  usuarios). Lo demás pide el rol `ADMIN`.
 - Turnos valida firma y vencimiento en cada pedido (Spring Security, resource server).
 
 ## Comunicación entre los dos servicios
