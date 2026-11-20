@@ -3,13 +3,13 @@
 
 > Documento **generado automáticamente** por la cátedra de Programación II (UM): RepoSense + análisis de calidad de **7 dimensiones**. **No editar a mano**: se regenera en cada evaluación.
 > Rama evaluada: `main`. Análisis **heurístico** (regex + métricas) + build: es una criba para orientar la revisión, **no una nota**. La **documentación** del repositorio no se evalúa.
-> Generado: 2026-11-18.
+> Generado: 2026-11-20.
 
 ## 1. Veredicto
 
 | Aspecto | Resultado |
 |---|---|
-| Índice de calidad | **61/100** |
+| Índice de calidad | **77/100** |
 | Tipo de repositorio | `backend` |
 | Build (`mvnw verify` / `gradlew check`) | OK |
 | Código (LOC) | 8,874 |
@@ -20,7 +20,7 @@
 | Duplicación (puerta) | 2.3% |
 | Duplicación lógica | 2.4% |
 | Duplicación de boilerplate | 0.7% |
-| Cobertura | 72% |
+| Cobertura | 71% |
 | Tope duro aplicado a D1 | `POO_BAJO` → D1 ≤ 60 |
 
 > Este informe **describe** lo que el análisis midió con los criterios ya establecidos de la materia. No es una nota.
@@ -31,18 +31,18 @@ Criterios de la cátedra (`CRITERIOS-CALIDAD.md`): **Aprobar** se juega con el p
 
 | Semáforo | Resultado |
 |---|---|
-| Aprobar (`estandar`) | **no cumple** — 6/11 |
-| Destacar (`exigente`) | **no cumple** — 4/11 |
+| Aprobar (`estandar`) | **no cumple** — 7/11 |
+| Destacar (`exigente`) | **no cumple** — 5/11 |
 
-**Para aprobar, falta cumplir:** SOLID; Hexagonal
+**Para aprobar, falta cumplir:** SOLID
 
-**Para destacar, falta cumplir:** SOLID; POO; Hexagonal; Duplicación
+**Para destacar, falta cumplir:** SOLID; POO; Duplicación
 
 ## 3. Autoría (RepoSense)
 
 | Autor | Commits | Código (LOC) | Tests (LOC) | Docs (LOC) | Días activos | % del código |
 |---|---:|---:|---:|---:|---:|---:|
-| Facundo Mangione | 16 | 5,384 | 5,242 | 2,479 | 16 | 100% |
+| Facundo Mangione | 17 | 5,385 | 5,241 | 2,503 | 17 | 100% |
 
 > _El LOC de autoría lo calcula RepoSense sobre el historial y puede diferir del LOC de código del análisis (que mira el estado de `main`)._
 
@@ -53,7 +53,7 @@ Cada dimensión indica **qué mide**, **por qué importa** y **tu resultado**. C
 | Dimensión | Peso | Puntaje |
 |:--|--:|--:|
 | **D1** Diseño OO, SOLID y patrones (20%) | 20% | 3 |
-| **D2** Arquitectura hexagonal — backend (15%) | 15% | 0 |
+| **D2** Arquitectura hexagonal — backend (15%) | 15% | 100 |
 | **D3** Frontend KMP: MVVM y buenas prácticas (10%) | 10% | N/A |
 | **D4** Integración y contrato (10%) | 10% | 90 |
 | **D5** Seguridad y robustez (10%) | 10% | 100 |
@@ -74,11 +74,7 @@ Cada dimensión indica **qué mide**, **por qué importa** y **tu resultado**. C
 
 - **Qué mide:** Separación en capas (dominio, puertos de entrada/salida, adaptadores) y dirección de las dependencias del backend.
 - **Por qué importa:** Aislar el dominio de la infraestructura permite cambiar la base de datos, el framework o el transporte sin tocar las reglas de negocio.
-- **Tu resultado:** **0/100**
-- **Para investigar la causa:**
-    - ¿El dominio importa framework o detalles de persistencia?
-    - ¿Dónde vive la lógica de negocio frente a los controladores?
-    - ¿Se definieron puertos para los servicios que se consumen?
+- **Tu resultado:** **100/100**
 
 ### D4. Integración y contrato (10%)
 
@@ -112,16 +108,16 @@ El análisis encontró las siguientes señales, con el archivo y la línea donde
 
 | Archivo | Señales |
 |---|---:|
-| `src/main/java/ar/edu/um/turnos/appointments/domain/User.java` | 11 |
-| `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java` | 10 |
 | `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationResource.java` | 9 |
 | `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ExceptionTranslator.java` | 9 |
 | `src/main/java/ar/edu/um/turnos/appointments/reservation/domain/ReservationProcess.java` | 7 |
-| `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java` | 7 |
 | `src/main/java/ar/edu/um/turnos/appointments/reservation/application/ReservationService.java` | 6 |
 | `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/kafka/CatedraActionsListener.java` | 5 |
 | `src/main/java/ar/edu/um/turnos/appointments/security/SecurityUtils.java` | 4 |
 | `src/main/java/ar/edu/um/turnos/appointments/reservation/infrastructure/kafka/KafkaPhoneSubmissionPublisher.java` | 4 |
+| `src/main/java/ar/edu/um/turnos/appointments/repository/entity/User.java` | 4 |
+| `src/main/java/ar/edu/um/turnos/appointments/web/rest/AuthenticateController.java` | 4 |
+| `src/main/java/ar/edu/um/turnos/appointments/security/DomainUserDetailsService.java` | 3 |
 
 **DIP/concretos** (58)
 - clase 'AppointmentsApp' muy acoplada (CBO=24) — `src/main/java/ar/edu/um/turnos/appointments/AppointmentsApp.java:24`
@@ -134,7 +130,7 @@ El análisis encontró las siguientes señales, con el archivo y la línea donde
 - clase 'SecurityConfiguration' instancia 5 concretos (CBO=21) — `src/main/java/ar/edu/um/turnos/appointments/config/SecurityConfiguration.java:24`
 - clase 'SecurityJwtConfiguration' muy acoplada (CBO=19) — `src/main/java/ar/edu/um/turnos/appointments/config/SecurityJwtConfiguration.java:21`
 - clase 'WebConfigurer' muy acoplada (CBO=13) — `src/main/java/ar/edu/um/turnos/appointments/config/WebConfigurer.java:21`
-- clase 'User' muy acoplada (CBO=12) — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:23`
+- clase 'User' muy acoplada (CBO=12) — `src/main/java/ar/edu/um/turnos/appointments/repository/entity/User.java:23`
 - clase 'AvailabilityService' muy acoplada (CBO=11) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/AvailabilityService.java:17`
 - clase 'AvailabilityService' instancia 3 concretos (CBO=11) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/AvailabilityService.java:17`
 - clase 'CatedraEventService' muy acoplada (CBO=14) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/CatedraEventService.java:19`
@@ -187,13 +183,13 @@ El análisis encontró las siguientes señales, con el archivo y la línea donde
 - método 'AppointmentsApp.logApplicationStartup' de 35 líneas — `src/main/java/ar/edu/um/turnos/appointments/AppointmentsApp.java:74`
 - clase 'LoggingAspect' grande (LOC=89, métodos=12, campos=1) — `src/main/java/ar/edu/um/turnos/appointments/aop/logging/LoggingAspect.java:22`
 - método 'LiquibaseConfiguration.liquibase' de 50 líneas — `src/main/java/ar/edu/um/turnos/appointments/config/LiquibaseConfiguration.java:33`
-- clase 'AbstractAuditingEntity' con baja cohesión (14%) — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java:23`
-- clase 'Authority' grande (LOC=64, métodos=10, campos=3) — `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java:18`
-- clase 'Authority' con baja cohesión (24%) — `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java:18`
-- clase 'User' grande (LOC=137, métodos=23, campos=11) — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:23`
-- clase 'User' con baja cohesión (10%) — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:23`
 - clase 'SecurityMetersService' grande (LOC=35, métodos=6, campos=8) — `src/main/java/ar/edu/um/turnos/appointments/management/SecurityMetersService.java:8`
 - clase 'SecurityMetersService' con baja cohesión (27%) — `src/main/java/ar/edu/um/turnos/appointments/management/SecurityMetersService.java:8`
+- clase 'AbstractAuditingEntity' con baja cohesión (14%) — `src/main/java/ar/edu/um/turnos/appointments/repository/entity/AbstractAuditingEntity.java:23`
+- clase 'Authority' grande (LOC=64, métodos=10, campos=3) — `src/main/java/ar/edu/um/turnos/appointments/repository/entity/Authority.java:18`
+- clase 'Authority' con baja cohesión (24%) — `src/main/java/ar/edu/um/turnos/appointments/repository/entity/Authority.java:18`
+- clase 'User' grande (LOC=137, métodos=23, campos=11) — `src/main/java/ar/edu/um/turnos/appointments/repository/entity/User.java:23`
+- clase 'User' con baja cohesión (10%) — `src/main/java/ar/edu/um/turnos/appointments/repository/entity/User.java:23`
 - método 'CatedraEventService.apply' con complejidad 7 — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/CatedraEventService.java:35`
 - clase 'ReservationService' grande (LOC=157, métodos=10, campos=6) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/ReservationService.java:33`
 - clase 'ReservationService' con baja cohesión (49%) — `src/main/java/ar/edu/um/turnos/appointments/reservation/application/ReservationService.java:33`
@@ -255,8 +251,8 @@ El análisis encontró las siguientes señales, con el archivo y la línea donde
 - clase 'LoginVM' con baja cohesión (33%) — `src/main/java/ar/edu/um/turnos/appointments/web/rest/vm/LoginVM.java:9`
 
 **OCP/type-switch** (5)
-- clase 'Authority' con 1 type-checks — `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java:18`
-- clase 'User' con 1 type-checks — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:23`
+- clase 'Authority' con 1 type-checks — `src/main/java/ar/edu/um/turnos/appointments/repository/entity/Authority.java:18`
+- clase 'User' con 1 type-checks — `src/main/java/ar/edu/um/turnos/appointments/repository/entity/User.java:23`
 - clase 'SecurityUtils' con 6 type-checks — `src/main/java/ar/edu/um/turnos/appointments/security/SecurityUtils.java:18`
 - clase 'AuthenticateController' con 1 type-checks — `src/main/java/ar/edu/um/turnos/appointments/web/rest/AuthenticateController.java:37`
 - clase 'ExceptionTranslator' con 26 type-checks — `src/main/java/ar/edu/um/turnos/appointments/web/rest/errors/ExceptionTranslator.java:51`
@@ -277,38 +273,16 @@ El análisis encontró las siguientes señales, con el archivo y la línea donde
 - bloque de 8 líneas repetido 2 veces en src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/AvailabilityIT.java:107, src/test/java/ar/edu/um/turnos/appointments/reservation/application/ReservationServiceTest.java:327 — `src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/AvailabilityIT.java:107`
 - bloque de 8 líneas repetido 3 veces en src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationIT.java:107, src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/AvailabilityIT.java:105, src/test/java/ar/edu/um/turnos/appointments/reservation/application/ReservationServiceTest.java:325 — `src/test/java/ar/edu/um/turnos/appointments/reservation/infrastructure/web/ReservationIT.java:107`
 
-**hexagonal** (20)
-- domain importa framework/infra: import com.fasterxml.jackson.annotation.JsonIgnoreProperties; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java:3`
-- domain importa framework/infra: import jakarta.persistence.Column; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java:4`
-- domain importa framework/infra: import jakarta.persistence.EntityListeners; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java:5`
-- domain importa framework/infra: import jakarta.persistence.MappedSuperclass; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java:6`
-- domain importa framework/infra: import org.springframework.data.annotation.CreatedBy; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java:10`
-- domain importa framework/infra: import org.springframework.data.annotation.CreatedDate; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java:11`
-- domain importa framework/infra: import org.springframework.data.annotation.LastModifiedBy; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java:12`
-- domain importa framework/infra: import org.springframework.data.annotation.LastModifiedDate; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java:13`
-- domain importa framework/infra: import org.springframework.data.jpa.domain.support.AuditingEntityListener; — `src/main/java/ar/edu/um/turnos/appointments/domain/AbstractAuditingEntity.java:14`
-- domain importa framework/infra: import com.fasterxml.jackson.annotation.JsonIgnoreProperties; — `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java:3`
-- domain importa framework/infra: import jakarta.persistence.*; — `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java:4`
-- domain importa framework/infra: import jakarta.validation.constraints.*; — `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java:5`
-- domain importa framework/infra: import org.springframework.data.domain.Persistable; — `src/main/java/ar/edu/um/turnos/appointments/domain/Authority.java:9`
-- domain importa framework/infra: import com.fasterxml.jackson.annotation.JsonIgnore; — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:4`
-- domain importa framework/infra: import jakarta.persistence.*; — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:5`
-- domain importa framework/infra: import jakarta.validation.constraints.Email; — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:6`
-- domain importa framework/infra: import jakarta.validation.constraints.NotNull; — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:7`
-- domain importa framework/infra: import jakarta.validation.constraints.Pattern; — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:8`
-- domain importa framework/infra: import jakarta.validation.constraints.Size; — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:9`
-- domain importa framework/infra: import org.hibernate.annotations.BatchSize; — `src/main/java/ar/edu/um/turnos/appointments/domain/User.java:16`
-
 ## 6. Evolución por commit
 
-Métricas calculadas sobre el estado de `main` en **cada commit** (14 commits con trabajo), del primero al último. La calidad usa el perfil `exigente`; el aporte de código lo mide RepoSense. El índice puede **bajar** al crecer el proyecto: se acumulan señales.
+Métricas calculadas sobre el estado de `main` en **cada commit** (15 commits con trabajo), del primero al último. La calidad usa el perfil `exigente`; el aporte de código lo mide RepoSense. El índice puede **bajar** al crecer el proyecto: se acumulan señales.
 
 ```mermaid
 xychart-beta
     title "Índice de calidad a lo largo de los commits"
-    x-axis ["4470e6c", "0909176", "ecbcf45", "479bc0b", "5f933df", "55264fc", "d23cd62", "d5dedbb", "5cfc698", "66a416a", "0a323fa", "317d2ba", "8baddd0", "1c6fc73"]
+    x-axis ["4470e6c", "0909176", "ecbcf45", "479bc0b", "5f933df", "55264fc", "d23cd62", "d5dedbb", "5cfc698", "66a416a", "0a323fa", "317d2ba", "8baddd0", "1c6fc73", "39c6df8"]
     y-axis "Índice" 0 --> 100
-    line [0, 15, 15, 46, 46, 46, 46, 46, 46, 49, 49, 49, 49, 50]
+    line [0, 15, 15, 46, 46, 46, 46, 46, 46, 49, 49, 49, 49, 50, 66]
 ```
 
 | # | Fecha | Commit | Autor | LOC | Índice | %POO | Duplic. | Sueltas |
@@ -327,6 +301,7 @@ xychart-beta
 | 12 | 2026-11-09 | `317d2ba` | Facundo Mangione | 11,207 | 49 | 79% | 9.2% | 0 |
 | 13 | 2026-11-15 | `8baddd0` | Facundo Mangione | 11,293 | 49 | 79% | 9.1% | 0 |
 | 14 | 2026-11-17 | `1c6fc73` | Facundo Mangione | 8,874 | 50 | 78% | 2.3% | 0 |
+| 15 | 2026-11-18 | `39c6df8` | Facundo Mangione | 8,874 | 66 | 78% | 2.3% | 0 |
 
 ---
 _Informe generado por la cátedra. Las dimensiones y umbrales corresponden a `calidad.py` (perfil `exigente`); el semáforo, a `CRITERIOS-CALIDAD.md`. La documentación del repositorio no se evalúa. Ante dudas, revisá el archivo señalado._
